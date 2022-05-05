@@ -23,6 +23,7 @@ API Reference
 Guides
 =========
 
+* :ref:`Problem Statement <problem_statement>`
 * :ref:`Segmentation Guide <segmentation_explained>`
 * :ref:`Grouping and Ranking Guide <grouping_explained>`
 * :ref:`Alignment Guide <alignment_explained>`

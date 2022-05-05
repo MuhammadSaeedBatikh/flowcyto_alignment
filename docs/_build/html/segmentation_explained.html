@@ -37,8 +37,9 @@
               <!-- Local TOC -->
               <div class="local-toc"><ul>
 <li><a class="reference internal" href="#">A Guide to Segmentation</a></li>
-<li><a class="reference internal" href="#big-picture">Big Picture</a></li>
-<li><a class="reference internal" href="#steps">Steps</a></li>
+<li><a class="reference internal" href="#the-big-picture">The Big Picture</a></li>
+<li><a class="reference internal" href="#segmentation">Segmentation</a></li>
+<li><a class="reference internal" href="#supression-and-merging">Supression and Merging</a></li>
 </ul>
 </div>
         </div>
@@ -69,8 +70,8 @@
 <span id="segmentation-explained"></span><h1>A Guide to Segmentation<a class="headerlink" href="#a-guide-to-segmentation" title="Permalink to this headline">¶</a></h1>
 <p>This section offers a simple guide to flow cytometry segmentation and an explaination for the techniques used.</p>
 </div>
-<div class="section" id="big-picture">
-<h1>Big Picture<a class="headerlink" href="#big-picture" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-big-picture">
+<h1>The Big Picture<a class="headerlink" href="#the-big-picture" title="Permalink to this headline">¶</a></h1>
 <p>The goal of the segmentation process is to locate and isolate what a human expert considers a gate.
 The first step a human expert carries out is to compute a per-channel histogram for each sample and identify prominent regions of interest (mountains) with comparatively large gaps between them and ignore regions with spurious gaps or few “bins”.
 Lines are then drawn by the expert to demarcate the locations of gates to prevent spillover from one region to another and thus preserve biologically relevant information such as ratios between subpopulations.
@@ -87,8 +88,8 @@ To replicate this procedure, we employ a three-step approach:</p>
 For a particular regional minimum, the set of points satisfying condition (2) is called the catchment basin or watershed of that minimum. The points satisfying condition (3) form crest lines on the topographic surface, and are referred to as divide lines or watershed lines.
 The principal objective of segmentation algorithms based on these concepts is to find the watershed lines. &quot; (Gonzalez, Rafael C, and Richard E. Woods. Digital Image Processing.)</p>
 </div>
-<div class="section" id="steps">
-<h1>Steps<a class="headerlink" href="#steps" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="segmentation">
+<h1>Segmentation<a class="headerlink" href="#segmentation" title="Permalink to this headline">¶</a></h1>
 <p>We construct a sample z as a mixture distribution with shifted normal components.
 Given <span class="math notranslate nohighlight">\(z_0~N(0,0.3)\)</span>, <span class="math notranslate nohighlight">\(z_1=z_0\)</span>, <span class="math notranslate nohighlight">\(z_2=z_0+1.7\)</span>,<span class="math notranslate nohighlight">\(z_3=z_0+4.6\)</span> ,and <span class="math notranslate nohighlight">\(z_4=z_0+8\)</span>, we get <span class="math notranslate nohighlight">\({z_1,…,z_4 }∼{P_1 (x),…,P_4 (x)}\)</span> and mixing wights w_i = 0.32  for i ∈{1,2,3}  and 0.04 for i=4.
 We end up with the final $ z ∼ f(x) = \[\sum_{i=1}^{4} w_i P_i (x) \]$</p>
@@ -102,10 +103,21 @@ Flipping the pdf converts mountains to catchment basins for the Watershed algori
 These seeds indicate where the flooding starts. It is worth mentioning that although these seeds have distinct labels, they might end up merged if they do not surpass defined thresholds.</p>
 <a class="reference internal image-reference" href="_images/Figure_6.png"><img alt="_images/Figure_6.png" class="align-center" src="_images/Figure_6.png" style="width: 70%;" /></a>
 <a class="reference internal image-reference" href="_images/Figure_7.png"><img alt="_images/Figure_7.png" class="align-center" src="_images/Figure_7.png" style="width: 70%;" /></a>
+</div>
+<div class="section" id="supression-and-merging">
+<h1>Supression and Merging<a class="headerlink" href="#supression-and-merging" title="Permalink to this headline">¶</a></h1>
 <p>This procedure typically produces an over-segmented pdf. Thus, the third step is to “suppress” spurious segments based on three morphological characteristics that define what a proper segment is, namely, how many cells are there in a gate, and how wide and deep the valley between two consecutive gates is. If a segment does not satisfy these criteria, it is suppressed and assigned to its nearest segment as shown in</p>
 <a class="reference internal image-reference" href="_images/Figure_7.png"><img alt="_images/Figure_7.png" class="align-center" src="_images/Figure_7.png" style="width: 70%;" /></a>
 <a class="reference internal image-reference" href="_images/Figure_8.png"><img alt="_images/Figure_8.png" class="align-center" src="_images/Figure_8.png" style="width: 70%;" /></a>
 <a class="reference internal image-reference" href="_images/Figure_9.png"><img alt="_images/Figure_9.png" class="align-center" src="_images/Figure_9.png" style="width: 70%;" /></a>
+<p>More formally, given a sample’s channel data <span class="math notranslate nohighlight">\(x\)</span>, a <span class="math notranslate nohighlight">\(1D\)</span> vector with pdf <span class="math notranslate nohighlight">\(f(x)\)</span> and a set B of watershed lines such that <span class="math notranslate nohighlight">\(B={b_0,b_1,…,b_n}\)</span> where <span class="math notranslate nohighlight">\(b_i\)</span> is the location of the <span class="math notranslate nohighlight">\(i^{th}\)</span> watershed line, a segment <span class="math notranslate nohighlight">\(S_k\)</span> (also a gate) is defined as the cells with values between the two consecutive watershed lines <span class="math notranslate nohighlight">\(b_{k-1}\)</span>  and <span class="math notranslate nohighlight">\(b_k\)</span>.
+We notice that <span class="math notranslate nohighlight">\(\int_{-∞}^∞ f(x)  dx= \int_{0}^{1}f(x)  dx =1 \)</span> since f(x) is a probability density function and therefore the area under the curve (AUC) of a given segment could be viewed as a ratio. We compute the AUC of a segment S_k  using the trapezoidal rule as a fast approximation:</p>
+<p><div class="math notranslate nohighlight">
+\[AUC(S_k )= \int_{b_{k-1}}^{b_k}f(x) dx ≈ \frac{b_k-b_{k-1} }{N} = \sum_{i=1}^{N} \frac{f(x_{i-1}) +f(x_i)}{2}\]</div>
+</p>
+<p>We then check the following inequality <span class="math notranslate nohighlight">\(AUC(S_k )≤α\)</span> to determine whether the segment <span class="math notranslate nohighlight">\(S_k\)</span> is a proper segment or a spurious one.
+The hyperparameter α∈[0,1] serves as a minimum threshold value which controls how sensitive the segmentation process is to rare populations. A typical value of α is 0.03, which entails that any segment with AUC less than 3% of the total number of cells will be suppressed. It is also worth noting that for some channels with small population such as natural killer (NK) cells which are comparatively rare (0.5-2%), an α≤0.01 is recommended. The following step is to assign the points of the suppressed segments to the nearest non-suppressed segments.</p>
+<p>Another important cue by which human experts identify proper segments is the topography of the valley between two consecutive segments. Typically, the valley between two segments should possess a certain minimum width and depth. A triangle is constructed using the highest two points in each segment and the watershed line x-y location. The depth of the valley is defined as the difference ∆y between the watershed line and the highest point of the two segments. Similarly, the width of the valley is defined as the difference ∆x between segments two highest points. We then check if ∆x≤β and  <span class="math notranslate nohighlight">\(\frac{∆y}{y_m}\)</span> ≤γ, where β, γ ∈[0,1]  are hyperparameters and y_mis the global maximum of <span class="math notranslate nohighlight">\(f(x)\)</span> which is used as a normalization coefficient to ensure that <span class="math notranslate nohighlight">\(\frac{∆y}{y_m}\)</span> and γ are less than 1. If the valley is not wide or deep enough, we merge the two segments in one large segment as shown in fig().</p>
 </div>
 
 
