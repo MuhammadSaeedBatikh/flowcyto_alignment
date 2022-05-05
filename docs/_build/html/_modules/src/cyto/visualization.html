@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.cyto.visualization &mdash; FLow Cytometry Alignment 1.0.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> FLow Cytometry Alignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">FLow Cytometry Alignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>src.cyto.visualization</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.cyto.visualization</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="kn">import</span> <span class="n">dendrogram</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="s1">&#39;blue,orange,g,r,coral,cyan,m,steelblue,brown,y,gray,k&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+
+
+<div class="viewcode-block" id="plot_gates_dendrogram"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_gates_dendrogram">[docs]</a><span class="k">def</span> <span class="nf">plot_gates_dendrogram</span><span class="p">(</span><span class="n">agg_model</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">jacc_threshold</span><span class="p">,</span>  <span class="n">column_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_title</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gatefontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">yfontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">        :param agg_model:</span>
+<span class="sd">        :param ch:</span>
+<span class="sd">        :param jacc_threshold:</span>
+<span class="sd">        :param column_name:</span>
+<span class="sd">        :param save:</span>
+<span class="sd">        :param show_title:</span>
+<span class="sd">        :param gatefontsize:</span>
+<span class="sd">        :param yfontsize:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mf">28.5</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_title</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ch: </span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">column_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">jacc_threshold</span><span class="p">)</span>
+        <span class="n">plot_dendrogram</span><span class="p">(</span><span class="n">agg_model</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span> <span class="n">gatefontsize</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span> <span class="n">yfontsize</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;../imgs/location_dendrogram_ch_</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_original_vs_aligned"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_original_vs_aligned">[docs]</a><span class="k">def</span> <span class="nf">plot_original_vs_aligned</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span><span class="n">samples</span><span class="p">,</span> <span class="n">aligned_samples</span><span class="p">,</span>
+                             <span class="n">n_sample</span><span class="p">,</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">,</span> <span class="n">columns_names</span><span class="p">,</span>
+                             <span class="n">max_per_plt</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">root_path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xlim0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xlim1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,):</span>
+
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param channels:</span>
+<span class="sd">    :param samples:</span>
+<span class="sd">    :param aligned_samples:</span>
+<span class="sd">    :param n_sample:</span>
+<span class="sd">    :param Loc_Ref_Dict_All_Ch:</span>
+<span class="sd">    :param columns_names:</span>
+<span class="sd">    :param max_per_plt:</span>
+<span class="sd">    :param root_path:</span>
+<span class="sd">    :param xlim0:</span>
+<span class="sd">    :param xlim1:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sample</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">root_path</span><span class="si">}</span><span class="s1">/aligned_ch_</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">_part_</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">n_sample</span><span class="p">,</span> <span class="n">max_per_plt</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">part</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ch:</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">columns_names</span><span class="p">[</span><span class="n">ch</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">, Samples: </span><span class="si">{</span><span class="n">part</span><span class="o">*</span><span class="n">max_per_plt</span><span class="si">}</span><span class="s1"> -&gt; </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">((</span><span class="n">part</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">max_per_plt</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_sample</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">samp</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">distplot</span><span class="p">(</span><span class="n">samp</span><span class="p">(</span><span class="n">ch</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">hist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;orig:</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">lo_gr</span> <span class="o">=</span> <span class="n">samp</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">location_group</span>
+            <span class="n">ref_gate</span> <span class="o">=</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">lo_gr</span><span class="p">]</span>
+
+            <span class="n">z</span> <span class="o">=</span> <span class="n">aligned_samples</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">ch</span><span class="p">]</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="n">samp</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">ch</span><span class="p">]:</span>
+                <span class="n">lo_gr</span> <span class="o">=</span> <span class="n">gate</span><span class="o">.</span><span class="n">location_group</span>
+                <span class="n">ref_gate</span> <span class="o">=</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">lo_gr</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">|</span> <span class="p">(</span><span class="n">y</span><span class="o">==</span><span class="n">ref_gate</span><span class="p">),</span><span class="n">samp</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span><span class="kc">False</span><span class="p">):</span>
+                    <span class="n">b</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">b</span><span class="p">:</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">distplot</span><span class="p">(</span><span class="n">z</span> <span class="p">,</span><span class="n">ax</span><span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist</span><span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">lo_gr</span><span class="o">+</span><span class="mi">4</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sns</span><span class="o">.</span><span class="n">distplot</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">hist</span><span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">lo_gr</span><span class="o">+</span><span class="mi">4</span><span class="p">])</span>
+
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim0</span><span class="p">,</span><span class="n">xlim1</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">xlim0</span><span class="p">,</span><span class="n">xlim1</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">n_sample</span><span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">root_path</span><span class="si">}</span><span class="s1">/aligned_ch_</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">_part_</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="plot_channel_segments"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_channel_segments">[docs]</a><span class="k">def</span> <span class="nf">plot_channel_segments</span><span class="p">(</span><span class="n">ch</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">max_per_plt</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">color_fill_lg</span> <span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">show_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">limit_x0</span><span class="o">=-.</span><span class="mi">1</span><span class="p">,</span>  <span class="n">limit_x1</span><span class="o">=</span><span class="mf">1.1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Given a list of samples and a channel number, this method plots the channel marginal probability density function for each sample indicating the location of segments/gates.</span>
+
+<span class="sd">    :param ch: :obj:`int`, channel number.</span>
+<span class="sd">    :param samples: :obj:`list(Sample)`, list of :obj:`Sample` objects.</span>
+<span class="sd">    :param max_per_plt: :obj:`int`, maximum number of plots allowed per plot.</span>
+<span class="sd">    :param limit_x0: :obj:`float`, plotting start point.</span>
+<span class="sd">    :param limit_x1: :obj:`float`, plotting end point.</span>
+<span class="sd">    :param color_fill_lg: :obj:`Bool`, default = :obj:`False`, if :obj:`True`, colors the gate/segment according to its location group.</span>
+<span class="sd">    :param show_labels: :obj:`Bool`, default = :obj:`True`, if :obj:`True`, the group labels are shown on each gate/segment.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span> <span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">),</span> <span class="n">max_per_plt</span><span class="p">),</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># sns.distplot(samples[s](ch), ax=axes[s%max_per_plt],hist=True,bins=100,label=f&#39;{s}&#39;,</span>
+        <span class="c1">#              kde_kws={&#39;bw_method&#39;: sample.kde_window[ch]})</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">pdf</span> <span class="o">=</span> <span class="n">sample</span><span class="o">.</span><span class="n">pdfs</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">color_fill_lg</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">s</span> <span class="o">%</span> <span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">limit_x0</span><span class="p">,</span> <span class="n">limit_x1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">g_obj</span> <span class="ow">in</span> <span class="n">sample</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">ch</span><span class="p">]:</span>
+            <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="n">g_obj</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">g_obj</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">color_fill_lg</span><span class="p">:</span>
+                <span class="n">lr</span> <span class="o">=</span> <span class="n">g_obj</span><span class="o">.</span><span class="n">location_group</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="o">.</span><span class="mi">3</span> <span class="k">if</span> <span class="n">g_obj</span><span class="o">.</span><span class="n">is_location_reference</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">s</span> <span class="o">%</span> <span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span>
+                                                   <span class="n">where</span><span class="o">=</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">a</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">),</span>
+                                                   <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                                   <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span><span class="p">,</span>
+                                                   <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">lr</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span>
+
+
+            <span class="k">if</span> <span class="n">show_labels</span><span class="p">:</span>
+                <span class="n">gate_title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">g_obj</span><span class="o">.</span><span class="n">overall_indx</span><span class="si">}</span><span class="s1">: (loc:</span><span class="si">{</span><span class="n">g_obj</span><span class="o">.</span><span class="n">location_group</span><span class="si">}</span><span class="s1">, morph:</span><span class="si">{</span><span class="n">g_obj</span><span class="o">.</span><span class="n">morphology_group</span><span class="si">}</span><span class="s1">)&#39;</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">max_per_plt</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span> <span class="p">,</span> <span class="n">g_obj</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="p">,</span> <span class="n">gate_title</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="plot_dendrogram"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_dendrogram">[docs]</a><span class="k">def</span> <span class="nf">plot_dendrogram</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Create linkage matrix and then plot the dendrogram.</span>
+
+<span class="sd">    :param model: :obj:`sklearn.cluster.AgglomerativeClustering`: Agglomerative Clustering model which contains necessary attributes regarding groups, hierarchy and so forth.</span>
+<span class="sd">    :param kwargs: :obj:`dict` keyword arguments passed to the :obj:`scipy.cluster.hierarchy.dendrogram` method.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">children_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">labels_</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">merge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">children_</span><span class="p">):</span>
+        <span class="n">current_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">child_idx</span> <span class="ow">in</span> <span class="n">merge</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">child_idx</span> <span class="o">&lt;</span> <span class="n">n_samples</span><span class="p">:</span>
+                <span class="n">current_count</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># leaf node</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">current_count</span> <span class="o">+=</span> <span class="n">counts</span><span class="p">[</span><span class="n">child_idx</span> <span class="o">-</span> <span class="n">n_samples</span><span class="p">]</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_count</span>
+
+    <span class="n">linkage_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">children_</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">distances_</span><span class="p">,</span> <span class="n">counts</span><span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Plot the corresponding dendrogram</span>
+    <span class="k">return</span> <span class="n">dendrogram</span><span class="p">(</span><span class="n">linkage_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="plot_gate_as_tiles"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_gate_as_tiles">[docs]</a><span class="k">def</span> <span class="nf">plot_gate_as_tiles</span><span class="p">(</span><span class="n">data_handler</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">color_tiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">rev</span><span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="n">shift_color</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">show_ref</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_num</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Plot all samples gates of a given channel as tiles with colors indicating their location groups.</span>
+
+<span class="sd">    :param data_handler: :obj:`DataHandler` object.</span>
+<span class="sd">    :param ch: :obj:`int`, channel number.</span>
+<span class="sd">    :param linewidth: :obj:`float`, width of each line/tile.</span>
+<span class="sd">    :param rev: :obj:`int`, either [-1,1], -1 reverse the order of tiles.</span>
+<span class="sd">    :param shift_color: :obj:`int`, shift color number from colors palette.</span>
+<span class="sd">    :param show_ref: :obj:`Bool`, if True, draws a black line in the middle of the tile corresponding to reference gate.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">gates_list</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_gates_of_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">gate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gates_list</span><span class="p">):</span>
+        <span class="n">counter</span><span class="o">+=</span><span class="mi">1</span>
+
+        <span class="n">s_num</span><span class="p">,</span> <span class="n">location_group</span> <span class="o">=</span> <span class="n">gate</span><span class="o">.</span><span class="n">sample_num</span><span class="p">,</span> <span class="n">gate</span><span class="o">.</span><span class="n">location_group</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">color_tiles</span><span class="p">:</span>
+            <span class="n">location_group</span><span class="o">=</span><span class="n">gate</span><span class="o">.</span><span class="n">gate_num_in_sample</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">Loc_Ref_Dict_All_Ch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ref</span> <span class="o">=</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">location_group</span><span class="p">]</span>
+            <span class="c1">#Todo: fix gate comparison. (__eq__)</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="n">ref</span><span class="o">.</span><span class="n">sample_num</span>  <span class="o">==</span> <span class="n">gate</span><span class="o">.</span><span class="n">sample_num</span> <span class="ow">and</span> <span class="n">ref</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">ref</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">gate</span><span class="o">.</span><span class="n">tight_gate</span> <span class="k">if</span> <span class="n">tight</span> <span class="k">else</span>  <span class="n">gate</span><span class="o">.</span><span class="n">gate</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">show_num</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">rev</span><span class="o">*</span> <span class="n">s_num</span> <span class="o">+</span> <span class="n">linewidth</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">counter</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="n">rev</span><span class="o">*</span> <span class="n">s_num</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">location_group</span> <span class="o">+</span> <span class="n">shift_color</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)],</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span><span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">flag</span> <span class="ow">and</span> <span class="n">show_ref</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span><span class="n">rev</span><span class="o">*</span> <span class="n">s_num</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="o">/</span><span class="mi">5</span><span class="p">,</span><span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span></div>
+
+<div class="viewcode-block" id="plot_lines"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_lines">[docs]</a><span class="k">def</span> <span class="nf">plot_lines</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">n_lines</span><span class="p">,</span> <span class="n">linewidth</span> <span class="o">=</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span><span class="n">s1</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">s2</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param x:</span>
+<span class="sd">    :param y:</span>
+<span class="sd">    :param n_lines:</span>
+<span class="sd">    :param linewidth:</span>
+<span class="sd">    :param s1:</span>
+<span class="sd">    :param s2:</span>
+<span class="sd">    :param ax:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ax</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="n">n_lines</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">):</span>
+        <span class="n">l0</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">l1</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">l0</span><span class="p">,</span><span class="n">l1</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,)</span>
+        <span class="c1"># ax.arrow(*l0, *l1,</span>
+        <span class="c1">#          length_includes_head=True,head_width=0.03)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">x</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span> <span class="n">s1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">y</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span> <span class="n">s2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="plot_network_graph"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_network_graph">[docs]</a><span class="k">def</span> <span class="nf">plot_network_graph</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">incidence_matrix</span><span class="p">,</span> <span class="n">columns_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param ch:</span>
+<span class="sd">    :param incidence_matrix:</span>
+<span class="sd">    :param columns_names:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">columns_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">columns_names</span><span class="p">[</span><span class="n">ch</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">incidence_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">incidence_matrix</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">weight</span><span class="o">=</span><span class="n">w</span><span class="p">)</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">node_size</span><span class="o">=</span><span class="mi">600</span><span class="p">,</span> <span class="n">node_color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">s</span><span class="o">%</span><span class="n">colors</span><span class="o">.</span><span class="fm">__len__</span><span class="p">():(</span><span class="n">incidence_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">s</span><span class="p">)</span><span class="o">%</span><span class="n">colors</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()])</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_labels</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+    <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">edge_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Muhammad Saeed.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

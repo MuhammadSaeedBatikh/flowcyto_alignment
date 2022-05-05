@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>segmentation module &mdash; FLow Cytometry Alignment 1.0.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> FLow Cytometry Alignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">segmentation module</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FLow Cytometry Alignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>segmentation module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/segmentation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-src.cyto.segmentation">
+<span id="segmentation-module"></span><h1>segmentation module<a class="headerlink" href="#module-src.cyto.segmentation" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="src.cyto.segmentation.DataHandler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">DataHandler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is an abstraction class for dataset that facilitates certain queries on samples, channels, gates, groups, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samples</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, a list of all samples in data:</p></li>
+<li><p><strong>verbose</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, prints all information about all gates in each channel for every sample.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="src.cyto.segmentation.DataHandler.get_gates_and_location_groups_in_channel">
+<code class="sig-name descname"><span class="pre">get_gates_and_location_groups_in_channel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler.get_gates_and_location_groups_in_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler.get_gates_and_location_groups_in_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of all gate objects in channel ch  as a pair (location group, gate)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of channels.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>gates: <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, a list of pairs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.DataHandler.get_gates_in_group">
+<code class="sig-name descname"><span class="pre">get_gates_in_group</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler.get_gates_in_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler.get_gates_in_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all gates in location group <code class="xref py py-obj docutils literal notranslate"><span class="pre">group</span></code> in channel ch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of channels.</p></li>
+<li><p><strong>group</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, first location group.</p></li>
+<li><p><strong>group_type</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>,</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>gates: <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(Gate)</span></code>, a list of gates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.DataHandler.get_gates_of_channel">
+<code class="sig-name descname"><span class="pre">get_gates_of_channel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler.get_gates_of_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler.get_gates_of_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all gates in channel ch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of channels.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>channel gates - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, list of gates in channel ch.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.DataHandler.get_groups_graph_matrix_of_ch">
+<code class="sig-name descname"><span class="pre">get_groups_graph_matrix_of_ch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler.get_groups_graph_matrix_of_ch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler.get_groups_graph_matrix_of_ch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes groups adjacency matrix in channel ch with weights (number of shared samples) between location groups as its enteries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of channels.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, m], A adjacency matrix between groups.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.DataHandler.get_groups_in_channel">
+<code class="sig-name descname"><span class="pre">get_groups_in_channel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomputed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler.get_groups_in_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler.get_groups_in_channel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of channels.</p></li>
+<li><p><strong>precomputed</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, saves computation time by returning previously computed version.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>channels_groups - <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of gates in channel ch with location group as a get.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.DataHandler.get_two_groups_connection_weight">
+<code class="sig-name descname"><span class="pre">get_two_groups_connection_weight</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#DataHandler.get_two_groups_connection_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.DataHandler.get_two_groups_connection_weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Counts the number of samples that have gates with location groups g1 and g2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>g1</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, first location group.</p></li>
+<li><p><strong>g2</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, second location group.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, weight (number of shared samples).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.cyto.segmentation.Gate">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">Gate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight_gate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate_num_in_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overall_indx_in_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Gate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Gate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is an abstraction class for a flow cytometry 1-D gate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>segment</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [n, 1], An array containing original data (cells) of a particular segment/gate.</p></li>
+<li><p><strong>t</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [m, 1], An array that represents the x axis. (pdf represents the y axis)</p></li>
+<li><p><strong>pd</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [m, 1], An array which represents probability density function.</p></li>
+<li><p><strong>gate</strong> – obj:<cite>list</cite>: open-ended gate location.</p></li>
+<li><p><strong>tight_gate</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>: tight gate location.</p></li>
+<li><p><strong>sample_num</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>: the sample number of which this gate belongs to.</p></li>
+<li><p><strong>ch_num</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>: the channel number of which this gate belongs to.</p></li>
+<li><p><strong>gate_num_in_sample</strong> – obj:<cite>int</cite>, gate number in sample.</p></li>
+<li><p><strong>overall_indx_in_data</strong> – obj:<cite>int</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>seg_min</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, minimum value in segment.</p></li>
+<li><p><strong>seg_max</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, maximum value in segment.</p></li>
+<li><p><strong>location_group</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, the location group number this gate belongs to.</p></li>
+<li><p><strong>group_ref_score</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, the gate score as a reference for its own location group.</p></li>
+<li><p><strong>morphology_group</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, the morphology group number this gate belongs to.</p></li>
+<li><p><strong>is_location_reference</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span> <span class="pre">`,</span> <span class="pre">if</span> <span class="pre">:obj:`True</span></code>, the gate is the reference for its location group.</p></li>
+<li><p><strong>aligned_flag</strong> – :obj:<a href="#id1"><span class="problematic" id="id2">`</span></a>int <a href="#id3"><span class="problematic" id="id4">`</span></a>, flag indicating alignment status.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="src.cyto.segmentation.Gate.get_tight_gates">
+<code class="sig-name descname"><span class="pre">get_tight_gates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Gate.get_tight_gates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Gate.get_tight_gates" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Returns tight location of gate based on the provided quantile</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>q</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, quantile value.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>a - <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, left boundary.</p></li>
+<li><p>b - <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, right boundary.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Gate.get_tightened_segment">
+<code class="sig-name descname"><span class="pre">get_tightened_segment</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Gate.get_tightened_segment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Gate.get_tightened_segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get data of segment within the input bounds. Default behaviour returns segment within original tightened bounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, start location.</p></li>
+<li><p><strong>b</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, end location.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>bounded_segment - <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code>, 1-D array of data within the specified bound.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="src.cyto.segmentation.Sample">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">Sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gates_per_channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate_factor_q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.04</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kde_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is an abstraction class for a flow cytometry sample. It houses the raw data and also allows several levels of manipulation
+such as having access to particular channel’s data, its probability density function and so forth.
+A sample is comprised of a number of channels. Each channel consists of a number of gates/segments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [m, ch], A 2-D array which containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.</p></li>
+<li><p><strong>gates_per_channel</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [ch, 1], A 1-D array containing the number of gates in each channel. A ‘-1’ entery means unspecified (Automatic Segmentation).</p></li>
+<li><p><strong>sample_num</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, sample number in dataset.</p></li>
+<li><p><strong>gate_factor_q</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing quantile value for each channel.</p></li>
+<li><p><strong>kde_window</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing Kernel Density Estimate window size for each channel. This determines how coarse or granular the estimated pdf is.</p></li>
+<li><p><strong>area_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing the minimum allowed AUC (ratio of cells) to be considered a proper segment/gate. Only required for watershed segmentation.</p></li>
+<li><p><strong>width_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing the minimum allowed width of the ravine between two segments/gates for the later to be considered a separate segment or an extension of the previous segment. Only required for watershed segmentation.</p></li>
+<li><p><strong>depth_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing the minimum allowed depth of the ravine between two segments/gates for the later to be considered a separate segment or an extension of the previous segment. Only required for watershed segmentation.</p></li>
+<li><p><strong>verbose</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, prints all information about all gates in each channel in sample.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>pdfs</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict(list)</span></code>, a dictionary of the following pair [x, probability density functions] with channel number as its key.</p></li>
+<li><p><strong>gates</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict(list(Gate))</span></code>, a dictionary of lists of gates with channel number as its key.</p></li>
+<li><p><strong>num_ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of channels.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.check_if_still_non_aligned">
+<code class="sig-name descname"><span class="pre">check_if_still_non_aligned</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.check_if_still_non_aligned"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.check_if_still_non_aligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether all gates in the provided channel have been aligned or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.get_ch_alignment_status">
+<code class="sig-name descname"><span class="pre">get_ch_alignment_status</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.get_ch_alignment_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.get_ch_alignment_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether all gates in channel have been aligned or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.resegment_ch">
+<code class="sig-name descname"><span class="pre">resegment_ch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kde_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.resegment_ch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.resegment_ch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resegments channel based on new threshold values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>kde_window</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing Kernel Density Estimate window size for each channel. This determines how coarse or granular the estimated pdf is.</p></li>
+<li><p><strong>area_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing the minimum allowed AUC (ratio of cells) to be considered a proper segment/gate. Only required for watershed segmentation.</p></li>
+<li><p><strong>width_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing the minimum allowed width of the ravine between two segments/gates for the later to be considered a separate segment or an extension of the previous segment. Only required for watershed segmentation.</p></li>
+<li><p><strong>depth_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing the minimum allowed depth of the ravine between two segments/gates for the later to be considered a separate segment or an extension of the previous segment. Only required for watershed segmentation.</p></li>
+<li><p><strong>init</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, recomputes probability density function.</p></li>
+<li><p><strong>verbose</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, prints all information about all gates in each channel in sample.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.tighten_all_gates">
+<code class="sig-name descname"><span class="pre">tighten_all_gates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gate_factor_q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.tighten_all_gates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.tighten_all_gates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the tight gate location for a all channels based on the provided quantile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gate_factor_q</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, quantile value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.tighten_gates_in_a_channel">
+<code class="sig-name descname"><span class="pre">tighten_gates_in_a_channel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate_factor_q</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.tighten_gates_in_a_channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.tighten_gates_in_a_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the tight gate location for gates of a particular channels based on the provided quantile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>gate_factor_q</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, quantile value.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.update_channel_gates">
+<code class="sig-name descname"><span class="pre">update_channel_gates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.update_channel_gates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.update_channel_gates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the status of all gates in the provided channel with the provided flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>flag</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, alignment flag.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="src.cyto.segmentation.Sample.update_gate">
+<code class="sig-name descname"><span class="pre">update_gate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#Sample.update_gate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.Sample.update_gate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the status of only the gate according to channel number and index with the provided flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>index</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, gate index.</p></li>
+<li><p><strong>flag</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, alignment flag.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.convert_gates_to_watershed_lines">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">convert_gates_to_watershed_lines</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#convert_gates_to_watershed_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.convert_gates_to_watershed_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of gates such as [[0,.5], [.5,1]] this method returns the following list of watershed lines [0, 0.5, 1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>gates</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(list)</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(gates)</span> <span class="pre">=</span> <span class="pre">m</span></code> where m is the number of gates.</p>
+</dd>
+<dt class="field-even">Return watershed_lines</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(watershed_lines)</span> <span class="pre">=</span> <span class="pre">m+1</span></code> where m is the number of watershed lines.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.convert_watershed_lines_to_gate">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">convert_watershed_lines_to_gate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">watershed_lines</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#convert_watershed_lines_to_gate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.convert_watershed_lines_to_gate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given watershed lines such as [0, 0.5, 1], this method returns the following list of gates [[0,.5], [.5,1]].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>watershed_lines</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(bounds)</span> <span class="pre">=</span> <span class="pre">m</span></code> where m is the number of watershed lines.</p>
+</dd>
+<dt class="field-even">Return gates</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">list(list)</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(gates)</span> <span class="pre">=</span> <span class="pre">m-1</span></code> where m is the number of gates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.get_watershed_lines_from_labeled_segs">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">get_watershed_lines_from_labeled_segs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg_pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#get_watershed_lines_from_labeled_segs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.get_watershed_lines_from_labeled_segs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets watershed lines locations from segmented probability density function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seg_pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which contains segment labels for each point in the provided pdf.</p></li>
+<li><p><strong>x</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array that represents the x axis. (seg_pdf represents the y axis)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return gates</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, a list with its entries as the boundaries of each gate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.merge">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">merge</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg_pdf</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign each point in segments of seg_pdf that has been suppressed (i.e. zeroed)  to the closest segment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>seg_pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which contains segment labels for each point in pdf.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which contains newly assigned segment labels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.non_maximum_suppression">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">non_maximum_suppression</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg_pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#non_maximum_suppression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.non_maximum_suppression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs non-maximum suppression on segments that do not surpass the provided area-under-the-curve (AUC) threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which represents probability density function.</p></li>
+<li><p><strong>seg_pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which contains segment labels for each point in the provided pdf.</p></li>
+<li><p><strong>area_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>: the minimum allowed AUC (ratio of cells) to be considered a proper segment/gate.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], masked segments with zeros in place of the original suppressed segments.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.segment_func">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">segment_func</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'water'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_segments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#segment_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.segment_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method performs segmentation on a raw vector of cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [n, 1], An array which contains original data (cells).</p></li>
+<li><p><strong>method</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>: defines segmentation method, [‘watershed’, ‘otsu’, ‘jenkis’].</p></li>
+<li><p><strong>x</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array that represents the x axis where pdf represents the y axis. (Only required for watershed segmentation.)</p></li>
+<li><p><strong>pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which represents the probability density function. (Only required for watershed segmentation.)</p></li>
+<li><p><strong>area_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>: the minimum allowed AUC (ratio of cells) to be considered a proper segment/gate. (Only required for watershed segmentation.)</p></li>
+<li><p><strong>width_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>: the minimum allowed width of the ravine between two segments/gates for the later to be considered a separate  segment or an extension of the previous segment. Only required for watershed segmentation.</p></li>
+<li><p><strong>depth_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>: the minimum allowed depth of the ravine between two segments/gates for the later to be considered a separate  segment or an extension of the previous segment. Only required for watershed segmentation.</p></li>
+<li><p><strong>num_segments</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>: number of segments. Only required for Otsu and Jenkis.</p></li>
+<li><p><strong>verbose</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">true</span></code>, prints each gate area, width and depth values and whether they are suppressed or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>watershed_lines - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(bounds)</span> <span class="pre">=</span> <span class="pre">m+1</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.suppress_and_merge_tiny_basins">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">suppress_and_merge_tiny_basins</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg_pdf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#suppress_and_merge_tiny_basins"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.suppress_and_merge_tiny_basins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Suppresses and merges tiny basins/gates/segments depending on the width and depth of the ravine between them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which represents probability density function.</p></li>
+<li><p><strong>seg_pdf</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which contains segment labels for each point in the provided pdf.</p></li>
+<li><p><strong>width_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>: the minimum allowed width of the ravine between two segments/gates for the later to be considered a separate  segment or an extension of the previous segment.</p></li>
+<li><p><strong>depth_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>: the minimum allowed depth of the ravine between two segments/gates for the later to be considered a separate  segment or an extension of the previous segment.</p></li>
+<li><p><strong>verbose</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">true</span></code>, prints width and depth values and whether they are suppressed or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [m, 1], An array which contains newly assigned segment labels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.segmentation.tighten_all_gates">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.segmentation.</span></code><code class="sig-name descname"><span class="pre">tighten_all_gates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate_q_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/segmentation.html#tighten_all_gates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.segmentation.tighten_all_gates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tightens all gates location based on the provided quantile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>z</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [n, 1], An array which contains original data (cells).</p></li>
+<li><p><strong>gates</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(gates)</span> <span class="pre">=</span> <span class="pre">m</span></code> where m is the number of gates.</p></li>
+<li><p><strong>gate_q_factor</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, tightening the gates using quantiles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>modified_gates <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(gates)</span> <span class="pre">=</span> <span class="pre">m</span></code> where m is the number of gates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Muhammad Saeed.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.cyto.alignment &mdash; FLow Cytometry Alignment 1.0.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> FLow Cytometry Alignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">FLow Cytometry Alignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>src.cyto.alignment</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.cyto.alignment</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">gaussian_filter1d</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+
+<div class="viewcode-block" id="minmaxmean_align"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.minmaxmean_align">[docs]</a><span class="k">def</span> <span class="nf">minmaxmean_align</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span> <span class="n">mi</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="n">q_alignment</span><span class="p">,</span> <span class="n">func0</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param x:</span>
+<span class="sd">    :param y:</span>
+<span class="sd">    :param mi:</span>
+<span class="sd">    :param mx:</span>
+<span class="sd">    :param q_alignment:</span>
+<span class="sd">    :param func0:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="c1">#  f(x)   = aa x**3 + alpha * x**2 + beta*x + gamma</span>
+    <span class="c1">#  f(x)   = alpha * x**2 + beta*x + gamma</span>
+    <span class="c1"># E(f(x)) = alpha * Ex*2 + beta*EY + gamma = EY</span>
+    <span class="c1"># f(x_mx) = alpha * x_mx*2 + beta*x_mx + gamma = y_mx</span>
+    <span class="c1"># f(x_mi) = alpha * x_mi*2 + beta*x_mi + gamma = y_mi</span>
+
+    <span class="k">if</span> <span class="n">func0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">func0</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span>
+
+    <span class="n">z</span> <span class="o">=</span> <span class="n">func0</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">x_mean</span><span class="p">,</span> <span class="n">y_mean</span> <span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">x_mx</span><span class="p">,</span> <span class="n">x_mi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="mi">1</span><span class="o">-</span><span class="n">q_alignment</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="n">q_alignment</span><span class="p">)</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">x_mx</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">x_mx</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">x_mi</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">x_mi</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x_mean</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">x_mean</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mx</span><span class="p">,</span> <span class="n">mi</span><span class="p">,</span> <span class="n">y_mean</span><span class="p">])</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">M</span><span class="p">)</span><span class="nd">@b</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span><span class="n">beta</span><span class="p">,</span> <span class="s1">&#39;gamma&#39;</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">func0</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">func0</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span></div>
+
+<div class="viewcode-block" id="linear_reg_inter"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.linear_reg_inter">[docs]</a><span class="k">def</span> <span class="nf">linear_reg_inter</span><span class="p">(</span><span class="n">ymean</span><span class="p">,</span> <span class="n">xmean</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param ymean:</span>
+<span class="sd">    :param xmean:</span>
+<span class="sd">    :param x0:</span>
+<span class="sd">    :param y0:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">ymean</span> <span class="o">-</span> <span class="n">y0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">xmean</span><span class="o">-</span><span class="n">x0</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y0</span><span class="o">-</span><span class="n">a</span><span class="o">*</span><span class="n">x0</span>
+    <span class="k">return</span> <span class="n">f</span></div>
+<span class="kn">from</span> <span class="nn">pyearth</span> <span class="kn">import</span> <span class="n">Earth</span>
+
+<span class="c1"># def comb_func_factory(x, f_start, f_middle, f_end, x_cut_point_start, x_cut_point_end):</span>
+<span class="c1">#     ind_st = x&lt;x_cut_point_start</span>
+<span class="c1">#     ind_end = x&gt;x_cut_point_end</span>
+<span class="c1">#     ys = f_start(x[ind_st])</span>
+<span class="c1">#     ym = f_middle(x[~np.logical_or(ind_st, ind_end)])</span>
+<span class="c1">#     ye = f_end(x[ind_end])</span>
+<span class="c1">#     return np.concatenate([ys, ym, ye])</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># def combine_funcs(funcs, locations, smooth_sigma=0.1):</span>
+<span class="c1">#     xcom = []</span>
+<span class="c1">#     ycom = []</span>
+<span class="c1">#     plot = True</span>
+<span class="c1">#     for i, f in enumerate(funcs):</span>
+<span class="c1">#         g0, g1 = locations[i]</span>
+<span class="c1">#         print(g0, g1)</span>
+<span class="c1">#         x_s = np.linspace(g0, g1, 2000)</span>
+<span class="c1">#         y_s = f(x_s)</span>
+<span class="c1">#         xcom += [x_s]</span>
+<span class="c1">#         ycom += [y_s]</span>
+<span class="c1">#         if plot:</span>
+<span class="c1">#             plt.plot(x_s, y_s)</span>
+<span class="c1">#             plt.xlim(-.3,1.3)</span>
+<span class="c1">#             plt.ylim(-.3,1.3)</span>
+<span class="c1">#     xcom = np.concatenate(xcom)</span>
+<span class="c1">#     ycom = np.concatenate(ycom)</span>
+<span class="c1">#     # middle</span>
+<span class="c1">#     f_middle = scipy.interpolate.interp1d(xcom, ycom, kind=&#39;cubic&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#     # start</span>
+<span class="c1">#     x_cut_point_end = locations[0][0] + .1*np.abs(locations[0][0]-locations[0][1])</span>
+<span class="c1">#     ind = np.argmin(np.abs(xcom-x_cut_point_end))</span>
+<span class="c1">#     x_cut_point_start = xcom[ind]</span>
+<span class="c1">#     y_cut_point_start = ycom[ind]</span>
+<span class="c1">#     ind = xcom&lt;=x_cut_point_start</span>
+<span class="c1">#     x, y = xcom[ind], ycom[ind]</span>
+<span class="c1">#     f_start = linear_reg_inter(y.mean(), x.mean(), x_cut_point_start, y_cut_point_start)</span>
+<span class="c1">#     x = np.linspace(-.3, x_cut_point_start, 20000)</span>
+<span class="c1">#     if plot:</span>
+<span class="c1">#         plt.figure()</span>
+<span class="c1">#         plt.plot(x, f_start(x))</span>
+<span class="c1">#</span>
+<span class="c1">#     # end</span>
+<span class="c1">#     x_cut_point_end = locations[-1][1] - .1*np.abs(locations[-1][0]-locations[-1][1])</span>
+<span class="c1">#     ind = np.argmin(np.abs(xcom-x_cut_point_end))</span>
+<span class="c1">#     x_cut_point_end = xcom[ind]</span>
+<span class="c1">#     y_cut_point_end = ycom[ind]</span>
+<span class="c1">#     ind = xcom &gt;= x_cut_point_end</span>
+<span class="c1">#     x, y = xcom[ind], ycom[ind]</span>
+<span class="c1">#     f_end = linear_reg_inter(y.mean(), x.mean(), x_cut_point_end, y_cut_point_end)</span>
+<span class="c1">#     if plot:</span>
+<span class="c1">#         x = np.linspace(x_cut_point_end, 1.3, 20000)</span>
+<span class="c1">#         plt.plot(x, f_end(x))</span>
+<span class="c1">#         x = np.linspace(x_cut_point_start, x_cut_point_end, 20000)</span>
+<span class="c1">#         plt.plot(x, f_middle(x))</span>
+<span class="c1">#</span>
+<span class="c1">#     comb_func = lambda x: gaussian_filter1d(comb_func_factory(x, f_start, f_middle, f_end,</span>
+<span class="c1">#                                                               x_cut_point_start, x_cut_point_end),smooth_sigma)</span>
+<span class="c1">#     return comb_func</span>
+<span class="c1">#</span>
+
+<div class="viewcode-block" id="lambda_warp_factory"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.lambda_warp_factory">[docs]</a><span class="k">def</span> <span class="nf">lambda_warp_factory</span><span class="p">(</span><span class="n">ref_inv_cdf</span><span class="p">,</span> <span class="n">target_ecdf</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param ref_inv_cdf:</span>
+<span class="sd">    :param target_ecdf:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">ref_inv_cdf</span><span class="p">(</span><span class="n">target_ecdf</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="get_smooth_and_monotonic"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.get_smooth_and_monotonic">[docs]</a><span class="k">def</span> <span class="nf">get_smooth_and_monotonic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param t:</span>
+<span class="sd">    :param y:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="mi">10</span>
+    <span class="n">yy</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span>
+    <span class="n">yy</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">yy</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">tt</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">yy</span><span class="p">),</span> <span class="p">[</span><span class="n">tt</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">tt</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="combined"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.combined">[docs]</a><span class="k">def</span> <span class="nf">combined</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">locations</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param x:</span>
+<span class="sd">    :param model:</span>
+<span class="sd">    :param funcs:</span>
+<span class="sd">    :param locations:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">all_inds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">locations</span><span class="p">):</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">x</span><span class="o">&gt;=</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">&lt;</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">funcs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span>  <span class="n">gaussian_filter1d</span><span class="p">(</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">ind</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">all_inds</span><span class="o">+=</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_inds</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">remaining_ind</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="o">*</span><span class="n">all_inds</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">remaining_ind</span> <span class="o">=</span> <span class="o">~</span><span class="n">all_inds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">remaining_ind</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">remaining_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">remaining_ind</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+<div class="viewcode-block" id="combine_funcs"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.combine_funcs">[docs]</a><span class="k">def</span> <span class="nf">combine_funcs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xs_ys</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">locations</span><span class="p">,</span> <span class="n">plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param model:</span>
+<span class="sd">    :param xs_ys:</span>
+<span class="sd">    :param funcs:</span>
+<span class="sd">    :param locations:</span>
+<span class="sd">    :param plot:</span>
+<span class="sd">    :param ax:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">xcom</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ycom</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">plot</span> <span class="ow">and</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">xy</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs_ys</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="c1"># x_s,y_s,_ = get_smooth_and_monotonic(xs_ys[i][0],xs_ys[i][1])</span>
+        <span class="n">x_s</span><span class="p">,</span><span class="n">y_s</span><span class="p">,</span><span class="o">=</span> <span class="n">xs_ys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">xs_ys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xcom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x_s</span><span class="p">]</span>
+        <span class="n">ycom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y_s</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_s</span><span class="p">,</span> <span class="n">y_s</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">xcom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">xcom</span><span class="p">)</span>
+    <span class="n">ycom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">ycom</span><span class="p">)</span>
+    <span class="c1"># middle</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">xcom</span><span class="p">,</span> <span class="n">ycom</span><span class="p">)</span>
+    <span class="n">comb_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">combined</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">locations</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-.</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">,</span><span class="mi">5000</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">comb_func</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-.</span><span class="mi">3</span><span class="p">,</span><span class="mf">1.3</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-.</span><span class="mi">3</span><span class="p">,</span><span class="mf">1.3</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">comb_func</span></div>
+
+
+<div class="viewcode-block" id="align_samples_func"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.align_samples_func">[docs]</a><span class="k">def</span> <span class="nf">align_samples_func</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">q_alignment</span><span class="p">,</span>
+                  <span class="n">samples</span><span class="p">,</span>
+                  <span class="n">aligned_samples</span><span class="p">,</span>
+                  <span class="n">original_samples</span><span class="p">,</span>
+                  <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">,</span>
+                  <span class="n">Loc_Morph_Ref_Dict_All_Ch</span><span class="p">,</span>
+                  <span class="n">funcs_dict</span><span class="p">,</span> <span class="n">comp_func_dict</span><span class="p">,</span><span class="n">earth_models_dict</span><span class="p">,</span>
+                  <span class="n">gates_locations_dict</span><span class="p">,</span>
+                  <span class="n">n_sample</span><span class="p">,</span>
+                  <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    :param ch:</span>
+<span class="sd">    :param q_alignment:</span>
+<span class="sd">    :param samples:</span>
+<span class="sd">    :param aligned_samples:</span>
+<span class="sd">    :param original_samples:</span>
+<span class="sd">    :param Loc_Ref_Dict_All_Ch:</span>
+<span class="sd">    :param Loc_Morph_Ref_Dict_All_Ch:</span>
+<span class="sd">    :param funcs_dict:</span>
+<span class="sd">    :param comp_func_dict:</span>
+<span class="sd">    :param earth_models_dict:</span>
+<span class="sd">    :param gates_locations_dict:</span>
+<span class="sd">    :param n_sample:</span>
+<span class="sd">    :param verbose:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">Ref_Dict_indx_by_Loc_and_Morph</span> <span class="o">=</span> <span class="n">Loc_Morph_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span>
+    <span class="n">types_of_alignment</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">targ_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sample</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Sample </span><span class="si">{</span><span class="n">targ_num</span><span class="si">}</span><span class="s1"> **** </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">funcs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">targ_num</span><span class="p">](</span><span class="n">ch</span><span class="p">)</span>
+        <span class="n">sample_orignal</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+        <span class="n">gates_locations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">refs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="n">targ_num</span><span class="p">]</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">ch</span><span class="p">])):</span>
+            <span class="n">target_gate</span> <span class="o">=</span> <span class="n">samples</span><span class="p">[</span><span class="n">targ_num</span><span class="p">]</span><span class="o">.</span><span class="n">gates</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">z</span><span class="o">&gt;=</span><span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">z</span><span class="o">&lt;</span><span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">target_seg1</span> <span class="o">=</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">segment</span>
+            <span class="n">target_ecdf</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">empirical_distribution</span><span class="o">.</span><span class="n">ECDF</span><span class="p">(</span><span class="n">target_seg1</span><span class="p">)</span>
+            <span class="n">lo_gr</span><span class="p">,</span> <span class="n">mr_gr</span> <span class="o">=</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">location_group</span><span class="p">,</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">morphology_group</span>
+            <span class="n">ref_gate</span> <span class="o">=</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">][</span><span class="n">lo_gr</span><span class="p">]</span>
+            <span class="n">mr_gr_ref</span> <span class="o">=</span> <span class="n">Ref_Dict_indx_by_Loc_and_Morph</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">lo_gr</span><span class="p">,</span> <span class="n">mr_gr</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;diff:&#39;</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">target_gate</span><span class="o">.</span><span class="n">segment</span><span class="o">-</span><span class="n">target_seg1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;lo_gr, mr_gr&#39;</span><span class="p">,</span><span class="n">lo_gr</span><span class="p">,</span> <span class="n">mr_gr</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> mr_gr_ref&#39;</span><span class="p">,</span> <span class="n">mr_gr_ref</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;target gate&#39;</span><span class="p">,</span><span class="n">target_gate</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+            <span class="k">if</span> <span class="n">mr_gr_ref</span><span class="p">:</span>
+                <span class="n">ref_seg1</span> <span class="o">=</span> <span class="n">mr_gr_ref</span><span class="o">.</span><span class="n">segment</span>
+                <span class="k">if</span> <span class="n">mr_gr_ref</span> <span class="o">!=</span> <span class="n">target_gate</span><span class="p">:</span>
+                    <span class="n">ref_ecdf</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">empirical_distribution</span><span class="o">.</span><span class="n">ECDF</span><span class="p">(</span><span class="n">ref_seg1</span><span class="p">)</span>
+                    <span class="n">ref_inv_cdf</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">empirical_distribution</span><span class="o">.</span><span class="n">monotone_fn_inverter</span><span class="p">(</span><span class="n">ref_ecdf</span><span class="p">,</span>
+                                                                                               <span class="n">ref_seg1</span><span class="p">)</span>
+                    <span class="n">ref_inv_cdf</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">BSpline</span><span class="p">(</span>
+                        <span class="n">ref_inv_cdf</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                        <span class="n">ref_inv_cdf</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                                                                     <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                                                                     <span class="n">extrapolate</span><span class="o">=</span><span class="kc">False</span>
+                                                                     <span class="p">)</span>
+
+                    <span class="n">func0</span> <span class="o">=</span> <span class="n">lambda_warp_factory</span><span class="p">(</span><span class="n">ref_inv_cdf</span><span class="p">,</span> <span class="n">target_ecdf</span><span class="p">)</span>
+
+                    <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Morph_IPT&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="s1">&#39;Mroph_Ref &#39;</span>
+                    <span class="n">func0</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">x</span>
+
+            <span class="n">n_mi</span><span class="p">,</span> <span class="n">n_mx</span> <span class="o">=</span> <span class="n">ref_gate</span><span class="o">.</span><span class="n">get_tight_gates</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="n">q_alignment</span><span class="p">)</span>
+            <span class="n">refs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">mr_gr_ref</span><span class="p">:</span>
+                <span class="n">funcf</span> <span class="o">=</span> <span class="n">minmaxmean_align</span><span class="p">(</span><span class="n">target_seg1</span> <span class="p">,</span><span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">,</span> <span class="n">n_mi</span><span class="p">,</span> <span class="n">n_mx</span><span class="p">,</span> <span class="n">q_alignment</span><span class="p">,</span> <span class="n">func0</span><span class="p">)</span>
+
+                <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="n">type_of_alignment</span> <span class="o">+</span> <span class="s1">&#39; Loc_MinMax&#39;</span> <span class="k">if</span> <span class="n">mr_gr_ref</span> <span class="o">!=</span> <span class="n">target_gate</span> <span class="k">else</span> \
+                    <span class="n">type_of_alignment</span> <span class="o">+</span> <span class="s1">&#39; Loc_Ref&#39;</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">funcf</span> <span class="o">=</span> <span class="n">minmaxmean_align</span><span class="p">(</span><span class="n">target_seg1</span><span class="p">,</span> <span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">,</span> <span class="n">n_mi</span><span class="p">,</span> <span class="n">n_mx</span><span class="p">,</span><span class="n">q_alignment</span><span class="p">)</span>
+                <span class="n">type_of_alignment</span> <span class="o">=</span><span class="s1">&#39;minmax&#39;</span>
+
+            <span class="n">funcs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">funcf</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;loc. gate is alredy ref?&#39;</span><span class="p">,</span> <span class="n">ref_gate</span> <span class="o">==</span> <span class="n">target_gate</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gate:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">)</span>
+            <span class="n">sample_orignal</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">tight_gate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">tight_gate</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2000</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">funcf</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">xys</span> <span class="o">+=</span><span class="p">[[</span><span class="n">t</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="n">y</span><span class="p">[</span><span class="n">ind</span><span class="p">]]]</span>
+            <span class="n">types_of_alignment</span> <span class="o">+=</span><span class="p">[</span><span class="n">type_of_alignment</span><span class="p">]</span>
+            <span class="n">gates_locations</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Earth</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">comp_func</span> <span class="o">=</span> <span class="n">combine_funcs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xys</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">gates_locations</span><span class="p">,</span><span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">comp_func_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">,</span> <span class="n">targ_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp_func</span>
+        <span class="n">earth_models_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">,</span> <span class="n">targ_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="n">funcs_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">,</span> <span class="n">targ_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">funcs</span>
+
+        <span class="n">sample_aligned</span> <span class="o">=</span> <span class="n">comp_func</span><span class="p">(</span><span class="n">sample_orignal</span><span class="p">)</span>
+        <span class="n">aligned_samples</span><span class="p">[</span><span class="n">targ_num</span><span class="p">,</span> <span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_aligned</span>
+        <span class="n">original_samples</span><span class="p">[</span><span class="n">targ_num</span><span class="p">,</span> <span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_orignal</span>
+        <span class="n">gates_locations_dict</span><span class="p">[</span><span class="n">targ_num</span><span class="p">,</span> <span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">gates_locations</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Muhammad Saeed.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

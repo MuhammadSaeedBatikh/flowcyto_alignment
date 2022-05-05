@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Guide to Segmentation &mdash; FLow Cytometry Alignment 1.0.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}})</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> FLow Cytometry Alignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">A Guide to Segmentation</a></li>
+<li><a class="reference internal" href="#big-picture">Big Picture</a></li>
+<li><a class="reference internal" href="#steps">Steps</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FLow Cytometry Alignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>A Guide to Segmentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/segmentation_explained.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="a-guide-to-segmentation">
+<span id="segmentation-explained"></span><h1>A Guide to Segmentation<a class="headerlink" href="#a-guide-to-segmentation" title="Permalink to this headline">¶</a></h1>
+<p>This section offers a simple guide to flow cytometry segmentation and an explaination for the techniques used.</p>
+</div>
+<div class="section" id="big-picture">
+<h1>Big Picture<a class="headerlink" href="#big-picture" title="Permalink to this headline">¶</a></h1>
+<p>The goal of the segmentation process is to locate and isolate what a human expert considers a gate.
+The first step a human expert carries out is to compute a per-channel histogram for each sample and identify prominent regions of interest (mountains) with comparatively large gaps between them and ignore regions with spurious gaps or few “bins”.
+Lines are then drawn by the expert to demarcate the locations of gates to prevent spillover from one region to another and thus preserve biologically relevant information such as ratios between subpopulations.
+To replicate this procedure, we employ a three-step approach:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Probability Density Function Estimation.</p></li>
+<li><p>Watershed Segmentation.</p></li>
+<li><p>Non-maximum Suppression.</p></li>
+</ol>
+</div></blockquote>
+<p>Similar to watershed segmentation for images, the idea of this approach is based on estimating the probability density function (pdf) and interpret it as a 2D topographical map with one spatial coordinate versus density, which corresponds to 1D mountains and valleys.
+&quot;In such a “topographic” interpretation, we consider three types of points: (1) points belonging to a regional minimum; (2) points at which a drop of water, if placed at the location of any of those points, would fall with certainty to a single minimum; and (3) points at which water would be equally likely to fall to more than one such minimum.
+For a particular regional minimum, the set of points satisfying condition (2) is called the catchment basin or watershed of that minimum. The points satisfying condition (3) form crest lines on the topographic surface, and are referred to as divide lines or watershed lines.
+The principal objective of segmentation algorithms based on these concepts is to find the watershed lines. &quot; (Gonzalez, Rafael C, and Richard E. Woods. Digital Image Processing.)</p>
+</div>
+<div class="section" id="steps">
+<h1>Steps<a class="headerlink" href="#steps" title="Permalink to this headline">¶</a></h1>
+<p>We construct a sample z as a mixture distribution with shifted normal components.
+Given <span class="math notranslate nohighlight">\(z_0~N(0,0.3)\)</span>, <span class="math notranslate nohighlight">\(z_1=z_0\)</span>, <span class="math notranslate nohighlight">\(z_2=z_0+1.7\)</span>,<span class="math notranslate nohighlight">\(z_3=z_0+4.6\)</span> ,and <span class="math notranslate nohighlight">\(z_4=z_0+8\)</span>, we get <span class="math notranslate nohighlight">\({z_1,…,z_4 }∼{P_1 (x),…,P_4 (x)}\)</span> and mixing wights w_i = 0.32  for i ∈{1,2,3}  and 0.04 for i=4.
+We end up with the final $ z ∼ f(x) = \[\sum_{i=1}^{4} w_i P_i (x) \]$</p>
+<p>First, we compute the pdf for each channel in each sample using Kernel Density Estimation (KDE) as shown in figure(1).
+Second, we “flip” the pdf by multiplying it with -1 and apply Watershed segmentation algorithm.
+Flipping the pdf converts mountains to catchment basins for the Watershed algorithm.</p>
+<a class="reference internal image-reference" href="_images/Figure_3.png"><img alt="_images/Figure_3.png" class="align-center" src="_images/Figure_3.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_4.png"><img alt="_images/Figure_4.png" class="align-center" src="_images/Figure_4.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_5.png"><img alt="_images/Figure_5.png" class="align-center" src="_images/Figure_5.png" style="width: 70%;" /></a>
+<p>The algorithm starts from a collection of chosen seeds (typically all local minima) with each seed having a different label.
+These seeds indicate where the flooding starts. It is worth mentioning that although these seeds have distinct labels, they might end up merged if they do not surpass defined thresholds.</p>
+<a class="reference internal image-reference" href="_images/Figure_6.png"><img alt="_images/Figure_6.png" class="align-center" src="_images/Figure_6.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_7.png"><img alt="_images/Figure_7.png" class="align-center" src="_images/Figure_7.png" style="width: 70%;" /></a>
+<p>This procedure typically produces an over-segmented pdf. Thus, the third step is to “suppress” spurious segments based on three morphological characteristics that define what a proper segment is, namely, how many cells are there in a gate, and how wide and deep the valley between two consecutive gates is. If a segment does not satisfy these criteria, it is suppressed and assigned to its nearest segment as shown in</p>
+<a class="reference internal image-reference" href="_images/Figure_7.png"><img alt="_images/Figure_7.png" class="align-center" src="_images/Figure_7.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_8.png"><img alt="_images/Figure_8.png" class="align-center" src="_images/Figure_8.png" style="width: 70%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_9.png"><img alt="_images/Figure_9.png" class="align-center" src="_images/Figure_9.png" style="width: 70%;" /></a>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Muhammad Saeed.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

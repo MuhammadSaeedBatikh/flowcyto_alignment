@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.cyto.grouping &mdash; FLow Cytometry Alignment 1.0.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> FLow Cytometry Alignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">FLow Cytometry Alignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>src.cyto.grouping</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.cyto.grouping</h1><div class="highlight"><pre>
+<span></span><span class="c1"># from helpers import *</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">AgglomerativeClustering</span>
+<span class="kn">from</span> <span class="nn">simpleai.search</span> <span class="kn">import</span> <span class="n">CspProblem</span><span class="p">,</span> <span class="n">backtrack</span><span class="p">,</span><span class="n">min_conflicts</span><span class="p">,</span> <span class="n">MOST_CONSTRAINED_VARIABLE</span><span class="p">,</span> <span class="n">LEAST_CONSTRAINING_VALUE</span>
+
+
+<div class="viewcode-block" id="build_similarity_matrix"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.build_similarity_matrix">[docs]</a><span class="k">def</span> <span class="nf">build_similarity_matrix</span><span class="p">(</span><span class="n">gates</span><span class="p">,</span> <span class="n">gate_q_factor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Computes a matrix of Jaccard similarity indices between gates.</span>
+
+<span class="sd">    :param gates: :obj:`list(Gate)`, :obj:`len(gates) = m` where m is the number of gates.</span>
+<span class="sd">    :param gate_q_factor: :obj:`float`, tightening the gates using quantiles</span>
+<span class="sd">                                if :obj:`None`: uses the original tight_gate in the gate object</span>
+<span class="sd">                                if :obj:`-1`: uses open-ended gates</span>
+<span class="sd">                                else: tightens the gates with the provided quantile value (slow).</span>
+<span class="sd">    :return: :obj:`numpy.array`, :obj:`shape = [m, m]` A similarity matrix with Jaccard indices as entries.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+
+    <span class="n">Sim_Matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;here&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">)):</span>
+        <span class="c1"># this if-block is redundant to avoid computing quantiles multiple times for gate_A.</span>
+        <span class="k">if</span> <span class="n">gate_q_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gate_A</span> <span class="o">=</span> <span class="n">gates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">tight_gate</span>
+        <span class="k">elif</span> <span class="n">gate_q_factor</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">gate_A</span> <span class="o">=</span> <span class="n">gates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">gate</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gate_A</span> <span class="o">=</span> <span class="n">gates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get_tight_gates</span><span class="p">(</span><span class="n">gate_q_factor</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">)):</span>
+            <span class="c1"># if gates[i].sample_num != gates[j].sample_num:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="n">j</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">gate_q_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">gate_B</span> <span class="o">=</span>  <span class="n">gates</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">tight_gate</span>
+                <span class="k">elif</span> <span class="n">gate_q_factor</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">gate_B</span> <span class="o">=</span> <span class="n">gates</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">gate</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">gate_B</span> <span class="o">=</span>  <span class="n">gates</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">get_tight_gates</span><span class="p">(</span><span class="n">gate_q_factor</span><span class="p">)</span>
+
+                <span class="n">j_indx</span> <span class="o">=</span> <span class="n">jaccard</span><span class="p">(</span><span class="n">gate_A</span><span class="p">,</span> <span class="n">gate_B</span><span class="p">)</span>
+                <span class="n">gates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">sample_num</span>
+                <span class="n">Sim_Matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">j_indx</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     if i!=j:</span>
+            <span class="c1">#         print(&#39;here&#39;)</span>
+            <span class="c1">#         Sim_Matrix[i, j] = 0</span>
+    <span class="k">return</span> <span class="n">Sim_Matrix</span></div>
+
+
+<div class="viewcode-block" id="build_distance_matrix"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.build_distance_matrix">[docs]</a><span class="k">def</span> <span class="nf">build_distance_matrix</span><span class="p">(</span><span class="n">gates</span><span class="p">,</span> <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Creates a matrix with `morphology_distance` between each pair of gates as its entries.</span>
+
+<span class="sd">    :param gates: :obj:`list(Gate)`, :obj:`len(gates) = m` where m is the number of gates.</span>
+<span class="sd">    :param n_samples: :obj:`int`,number of cells sampled from each gate to compute the morphology_distance.</span>
+<span class="sd">    :return: :obj:`numpy.array`, :obj:`shape = [m, m]`, distance_matrix.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">)):</span>
+        <span class="n">A_seg</span> <span class="o">=</span> <span class="n">gates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">segment</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">A_seg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">A_seg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                                <span class="p">)</span>
+        <span class="n">A_seg_sub_sampled</span> <span class="o">=</span> <span class="n">A_seg</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gates</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">gates</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">sample_num</span> <span class="o">!=</span> <span class="n">gates</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">sample_num</span><span class="p">:</span>
+                <span class="n">B_seg</span> <span class="o">=</span>  <span class="n">gates</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">segment</span>
+                <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">B_seg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">B_seg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                                        <span class="p">)</span>
+                <span class="n">B_seg_sub_sampled</span> <span class="o">=</span> <span class="n">B_seg</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="n">morphology_distance</span><span class="p">(</span><span class="n">A_seg_sub_sampled</span><span class="p">,</span> <span class="n">B_seg_sub_sampled</span><span class="p">)</span>
+                <span class="n">distance_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span>
+    <span class="k">return</span> <span class="n">distance_matrix</span></div>
+
+<div class="viewcode-block" id="group_gates"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.group_gates">[docs]</a><span class="k">def</span> <span class="nf">group_gates</span><span class="p">(</span><span class="n">gates</span><span class="p">,</span> <span class="n">dist_matrix</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">on_location</span><span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Based on the precomputed distance matrix and threshold value, a hierarchical clustering is performed to group gates together.</span>
+<span class="sd">    It also updates group parameter in each gate.</span>
+
+<span class="sd">    :param gates: :obj:`list(Gate)`, :obj:`len(gates) = m` where m is the number of gates.</span>
+<span class="sd">    :param dist_matrix: :obj:`numpy.array`, shape = [m, m], A precomputed square distance matrix between each gate present in :obj:`gates`.</span>
+<span class="sd">    :param threshold: :obj:`float`, the threshold value used to distinguish between different groups.</span>
+<span class="sd">    :param on_location: :obj:`Bool`, default = :obj:`True`, if :obj:`True`, the method updates :obj:`location_group` in each gate object, otherwise it updates :obj:`morphology_group`.</span>
+<span class="sd">    :return: :obj:`AgglomerativeClustering` agg_model and :obj:`np.array` groups as labels for each input gate.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+
+    <span class="c1"># &#39;Single linkage&#39; is not coherent for it might allow separate gates in one sample to be members of the same location group</span>
+    <span class="c1"># TODO: A combination of &#39;complete linkage&#39; and punctuated Jaccard index should be used instead.</span>
+
+    <span class="n">agg_model</span> <span class="o">=</span>  <span class="n">AgglomerativeClustering</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">affinity</span><span class="o">=</span><span class="s1">&#39;precomputed&#39;</span><span class="p">,</span>
+                        <span class="n">distance_threshold</span> <span class="o">=</span> <span class="n">threshold</span><span class="p">,</span>
+                        <span class="n">linkage</span><span class="o">=</span><span class="s1">&#39;single&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">dist_matrix</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">agg_model</span><span class="o">.</span><span class="n">labels_</span> <span class="o">+</span><span class="mi">1</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">gate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gates</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">on_location</span><span class="p">:</span>
+            <span class="n">gate</span><span class="o">.</span><span class="n">location_group</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gate</span><span class="o">.</span><span class="n">morphology_group</span> <span class="o">=</span> <span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">agg_model</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="binary_overlap_constarint"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.binary_overlap_constarint">[docs]</a><span class="k">def</span> <span class="nf">binary_overlap_constarint</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Checks whether a pair of potential references overlap or not.</span>
+
+<span class="sd">    :param variables: :obj:`tuple`, a tuple of groups present in a channel.</span>
+<span class="sd">    :param values: :obj:`list`, a list of pairs of gates.</span>
+<span class="sd">    :return: :obj:`Bool`, if :obj:`True`, the two gates overlaps.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">jind</span> <span class="o">=</span> <span class="n">jaccard</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">gate</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">gate</span><span class="p">)</span>
+    <span class="c1"># check if jind within certain epislon</span>
+    <span class="c1"># TODO: use precomputed Jac_Similarity Matrix</span>
+    <span class="k">if</span> <span class="n">jind</span> <span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="get_references"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.get_references">[docs]</a><span class="k">def</span> <span class="nf">get_references</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Computes a set of references for channel ch that satisfy good reference desiderata, namely, maximally overlapping within group and non-overlapping between connected groups.</span>
+<span class="sd">    This is the core method of this module. First, it computes groups incidence matrix in channel ch with weights representing the number of shared samples.</span>
+<span class="sd">    Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other consideration.</span>
+<span class="sd">    Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking, AC-3 arc consistency, and</span>
+<span class="sd">    Least-Constraining-Value heuristics. Finally, it checks whether a deadlock has occurred and resolve the issue by loosening the group with the least important connections.</span>
+
+<span class="sd">    :param ch: :obj:`int`, channel number.</span>
+<span class="sd">    :param data_handler: :obj:`Datahandler`, a Datahandler object that facilitates certain quires on current data state.</span>
+<span class="sd">    :returns:</span>
+<span class="sd">      - result - :obj:`dict`, a dictionary of computed reference gate with location groups as keys.</span>
+<span class="sd">      - incidence_matrix - :obj:`numpy.array`, an [m,m] weighted incidence matrix where m is the number of location groups in channel ch.</span>
+<span class="sd">      - loosened_constraints - :obj:`list`, a list of loosened constraints in the case of a deadlock, empty otherwise.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_groups_in_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="n">groups_gates</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span>
+                        <span class="nb">sorted</span><span class="p">(</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_gates_in_group</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">g</span><span class="p">),</span>
+                               <span class="n">key</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">ga</span><span class="p">:</span> <span class="n">ga</span><span class="o">.</span><span class="n">group_ref_score</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+                    <span class="p">}</span>
+
+
+    <span class="n">incidence_matrix</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_groups_graph_matrix_of_ch</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">incidence_matrix</span><span class="p">)</span>
+
+    <span class="c1"># CSP ingredients</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+    <span class="n">domains</span> <span class="o">=</span> <span class="n">groups_gates</span>
+    <span class="n">groups_to_contstarint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">incidence_matrix</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">gtc</span> <span class="ow">in</span> <span class="n">groups_to_contstarint</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">gtc</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">constraints</span><span class="o">+=</span> <span class="p">[</span> <span class="p">(</span><span class="n">gtc</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">binary_overlap_constarint</span><span class="p">)</span> <span class="p">]</span>
+
+
+    <span class="c1"># my_problem = CspProblem(variables, domains, constraints)</span>
+    <span class="c1"># initial_assignment = {k:gr[0] for k, gr in groups_gates.items()}</span>
+    <span class="c1">#</span>
+    <span class="c1"># result = min_conflicts(my_problem, initial_assignment=initial_assignment, iterations_limit=1000)</span>
+    <span class="c1"># for r in  result.values():</span>
+    <span class="c1">#     print((r.location_group,r.sample_num ,int(r.group_ref_score*100)/100))</span>
+
+
+
+    <span class="c1"># optimal gates if we do not care about overlapping</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">groups_gates</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;optimal gates:&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span>  <span class="n">result</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">((</span><span class="n">r</span><span class="o">.</span><span class="n">location_group</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">sample_num</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">group_ref_score</span><span class="o">*</span><span class="mi">100</span><span class="p">)</span><span class="o">/</span><span class="mi">100</span><span class="p">),</span> <span class="n">r</span><span class="o">.</span><span class="n">gate</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;constraints&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">])</span>
+    <span class="n">loosened_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">constraints</span><span class="p">)):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;iter </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">])</span>
+        <span class="n">my_problem</span> <span class="o">=</span> <span class="n">CspProblem</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">domains</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">backtrack</span><span class="p">(</span><span class="n">my_problem</span><span class="p">,</span>
+                            <span class="n">value_heuristic</span><span class="o">=</span><span class="n">LEAST_CONSTRAINING_VALUE</span><span class="p">,</span>
+                           <span class="n">inference</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Check if Deadlock and loosen the weakest constraint</span>
+        <span class="c1"># TODO: This should be all the constraints of an entire group not a single constraint</span>
+        <span class="c1"># TODO: flag gates from the group that has been ignored in order for the alignment module to treat it accordingly.</span>
+
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">incidence_matrix</span><span class="p">[</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">jj</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+                <span class="n">canv</span> <span class="o">=</span> <span class="n">incidence_matrix</span><span class="p">[</span><span class="n">co</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">co</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">canv</span> <span class="o">&lt;=</span> <span class="n">m</span><span class="p">:</span>
+                    <span class="n">m</span> <span class="o">=</span> <span class="n">canv</span>
+                    <span class="n">jj</span> <span class="o">=</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">jj</span><span class="p">)</span>
+            <span class="n">loosened_constraints</span><span class="o">+=</span><span class="p">[</span><span class="n">constraints</span><span class="p">[</span><span class="n">jj</span><span class="p">]]</span>
+            <span class="n">constraints</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">jj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">is_location_reference</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">incidence_matrix</span><span class="p">,</span> <span class="n">loosened_constraints</span>
+
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No Constraints&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">is_location_reference</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+    <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">incidence_matrix</span><span class="p">,</span> <span class="n">loosened_constraints</span></div>
+
+
+<div class="viewcode-block" id="recompute_and_update_location_hierarchy_and_refs"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.recompute_and_update_location_hierarchy_and_refs">[docs]</a><span class="k">def</span> <span class="nf">recompute_and_update_location_hierarchy_and_refs</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">,</span> <span class="n">jaccard_thresholds</span><span class="p">,</span>
+                                    <span class="n">Sim_Matrix_dict</span><span class="p">,</span> <span class="n">agg_models_dict</span><span class="p">,</span>
+                                    <span class="n">location_groups_dict</span><span class="p">,</span>
+                                    <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">,</span>
+                                       <span class="n">incidence_matrices</span><span class="p">,</span>
+                                       <span class="n">loosened_groups_for_deadlock_dict</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">     Recomputes references for the provided channels and updates Similarity Matrix Dictionary, Agglomerative Model Dictionary, Location Groups Dictionary,</span>
+<span class="sd">     Location References Dictionary, Incidence Matrcies Dictionary, Loosened Groups For Deadlock Dictionary.</span>
+
+<span class="sd">    :param channels: :obj:`list(int)`, a list of channels to update.</span>
+<span class="sd">    :param data_handler: :obj:`Datahandler`, a Datahandler object that facilitates certain quires on current data state.</span>
+<span class="sd">    :param jaccard_thresholds: :obj:`dict`, a dictionary of Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.</span>
+<span class="sd">    :param Sim_Matrix_dict: :obj:`dict`, a dictionary of  [n,n] :obj:`numpy.array` Jaccard Similarity Matrices between pairs of gates with channels numbers as its keys where n is the number of gates.</span>
+<span class="sd">    :param agg_models_dict: :obj:`dict`, a dictionary of computed :obj:`sklearn.cluster.AgglomerativeClustering` Agglomerative Models based on the computed Jaccard Similarity Matrices with channels numbers as its keys.</span>
+<span class="sd">    :param location_groups_dict: :obj:`dict`, a dictionary of :obj:`int` location groups for each channel with channels numbers as its keys.</span>
+<span class="sd">    :param Loc_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen reference gates for all channels with channels numbers as its keys.</span>
+<span class="sd">    :param incidence_matrices: :obj:`dict`, a dictionary of  [m,m] :obj:`numpy.array` incidence matrices with channels numbers as its keys where m is the number of groups.</span>
+<span class="sd">    :param loosened_groups_for_deadlock_dict: :obj:`dict`, a dictionary of constraints that have been loosened because of a deadlock with channels numbers as its keys.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ch&#39;</span><span class="p">,</span><span class="n">ch</span><span class="p">)</span>
+        <span class="n">gates_obj_arr</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_gates_of_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+        <span class="n">Sim_Matrix</span> <span class="o">=</span> <span class="n">build_similarity_matrix</span><span class="p">(</span><span class="n">gates_obj_arr</span><span class="p">)</span>
+        <span class="n">agg_model</span><span class="p">,</span> <span class="n">location_groups</span> <span class="o">=</span>  <span class="n">group_gates</span><span class="p">(</span><span class="n">gates_obj_arr</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">Sim_Matrix</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">jaccard_thresholds</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="p">)</span>
+
+        <span class="n">Sim_Matrix_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sim_Matrix</span>
+        <span class="n">agg_models_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">agg_model</span>
+        <span class="n">location_groups_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span><span class="n">location_groups</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unique groups&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">location_groups</span><span class="p">),</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">incidence_matrices</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">loosened_groups_for_deadlock_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_references</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Muhammad Saeed.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

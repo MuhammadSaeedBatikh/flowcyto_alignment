@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>visualization module &mdash; FLow Cytometry Alignment 1.0.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> FLow Cytometry Alignment
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">visualization module</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">FLow Cytometry Alignment</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>visualization module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/visualization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-src.cyto.visualization">
+<span id="visualization-module"></span><h1>visualization module<a class="headerlink" href="#module-src.cyto.visualization" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_channel_segments">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_channel_segments</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_per_plt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_fill_lg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_x0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_x1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_channel_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_channel_segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of samples and a channel number, this method plots the channel marginal probability density function for each sample indicating the location of segments/gates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>samples</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(Sample)</span></code>, list of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Sample</span></code> objects.</p></li>
+<li><p><strong>max_per_plt</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, maximum number of plots allowed per plot.</p></li>
+<li><p><strong>limit_x0</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, plotting start point.</p></li>
+<li><p><strong>limit_x1</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, plotting end point.</p></li>
+<li><p><strong>color_fill_lg</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, default = <code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, colors the gate/segment according to its location group.</p></li>
+<li><p><strong>show_labels</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, default = <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, if <code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code>, the group labels are shown on each gate/segment.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_dendrogram">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_dendrogram</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_dendrogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_dendrogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create linkage matrix and then plot the dendrogram.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">sklearn.cluster.AgglomerativeClustering</span></code>: Agglomerative Clustering model which contains necessary attributes regarding groups, hierarchy and so forth.</p></li>
+<li><p><strong>kwargs</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code> keyword arguments passed to the <code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.cluster.hierarchy.dendrogram</span></code> method.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_gate_as_tiles">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_gate_as_tiles</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_handler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Loc_Ref_Dict_All_Ch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_tiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_gate_as_tiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_gate_as_tiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all samples gates of a given channel as tiles with colors indicating their location groups.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_handler</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">DataHandler</span></code> object.</p></li>
+<li><p><strong>ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, channel number.</p></li>
+<li><p><strong>linewidth</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, width of each line/tile.</p></li>
+<li><p><strong>rev</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, either [-1,1], -1 reverse the order of tiles.</p></li>
+<li><p><strong>shift_color</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, shift color number from colors palette.</p></li>
+<li><p><strong>show_ref</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Bool</span></code>, if True, draws a black line in the middle of the tile corresponding to reference gate.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_gates_dendrogram">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_gates_dendrogram</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agg_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jacc_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gatefontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">13</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yfontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_gates_dendrogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_gates_dendrogram" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agg_model</strong> – </p></li>
+<li><p><strong>ch</strong> – </p></li>
+<li><p><strong>jacc_threshold</strong> – </p></li>
+<li><p><strong>column_name</strong> – </p></li>
+<li><p><strong>save</strong> – </p></li>
+<li><p><strong>show_title</strong> – </p></li>
+<li><p><strong>gatefontsize</strong> – </p></li>
+<li><p><strong>yfontsize</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_lines">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_lines</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_lines" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – </p></li>
+<li><p><strong>y</strong> – </p></li>
+<li><p><strong>n_lines</strong> – </p></li>
+<li><p><strong>linewidth</strong> – </p></li>
+<li><p><strong>s1</strong> – </p></li>
+<li><p><strong>s2</strong> – </p></li>
+<li><p><strong>ax</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_network_graph">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_network_graph</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">incidence_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_network_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_network_graph" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ch</strong> – </p></li>
+<li><p><strong>incidence_matrix</strong> – </p></li>
+<li><p><strong>columns_names</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.visualization.plot_original_vs_aligned">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.visualization.</span></code><code class="sig-name descname"><span class="pre">plot_original_vs_aligned</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aligned_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Loc_Ref_Dict_All_Ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_per_plt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xlim1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/visualization.html#plot_original_vs_aligned"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.visualization.plot_original_vs_aligned" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> – </p></li>
+<li><p><strong>samples</strong> – </p></li>
+<li><p><strong>aligned_samples</strong> – </p></li>
+<li><p><strong>n_sample</strong> – </p></li>
+<li><p><strong>Loc_Ref_Dict_All_Ch</strong> – </p></li>
+<li><p><strong>columns_names</strong> – </p></li>
+<li><p><strong>max_per_plt</strong> – </p></li>
+<li><p><strong>root_path</strong> – </p></li>
+<li><p><strong>xlim0</strong> – </p></li>
+<li><p><strong>xlim1</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Muhammad Saeed.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
