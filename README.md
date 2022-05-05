@@ -5,7 +5,7 @@ Flow Cytometry Alignment Project.
 Dependencies
 ======================
 
-* `Python <https://www.python.org/downloads/>`_ (>= 3.6)
+* `Python (>= 3.6)
 * `Numpy 
 * `Scipy 
 * `Statsmodels
