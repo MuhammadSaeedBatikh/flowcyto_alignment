@@ -59,10 +59,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for src.cyto.grouping</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">AgglomerativeClustering</span>
+<span></span><span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">AgglomerativeClustering</span>
 <span class="kn">from</span> <span class="nn">simpleai.search</span> <span class="kn">import</span> <span class="n">CspProblem</span><span class="p">,</span> <span class="n">backtrack</span><span class="p">,</span><span class="n">min_conflicts</span><span class="p">,</span> <span class="n">MOST_CONSTRAINED_VARIABLE</span><span class="p">,</span> <span class="n">LEAST_CONSTRAINING_VALUE</span>
-<span class="c1"># from helpers import *</span>
+<span class="kn">from</span> <span class="nn">src.cyto.helpers</span> <span class="kn">import</span> <span class="o">*</span>
 
 <div class="viewcode-block" id="build_similarity_matrix"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.build_similarity_matrix">[docs]</a><span class="k">def</span> <span class="nf">build_similarity_matrix</span><span class="p">(</span><span class="n">gates</span><span class="p">,</span> <span class="n">gate_q_factor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
@@ -319,6 +318,62 @@
         <span class="n">location_groups_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span><span class="n">location_groups</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unique groups&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">location_groups</span><span class="p">),</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">incidence_matrices</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">loosened_groups_for_deadlock_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_references</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="update_morphology_hierarchy_and_refs"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.update_morphology_hierarchy_and_refs">[docs]</a><span class="k">def</span> <span class="nf">update_morphology_hierarchy_and_refs</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span>
+                                         <span class="n">wass_dist_threshold</span><span class="p">,</span>
+                                         <span class="n">data_handler</span><span class="p">,</span>
+                                         <span class="n">location_groups_dict</span><span class="p">,</span>
+                                         <span class="n">Loc_Morph_Ref_Dict_All_Ch</span><span class="p">,</span>
+                                         <span class="n">Morph_models_dict</span><span class="p">,</span>
+                                         <span class="n">Morph_groups_All_ch</span><span class="p">,</span>
+                                         <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">2000</span>
+                                         <span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    :param channels:</span>
+<span class="sd">    :param wass_dist_threshold:</span>
+<span class="sd">    :param data_handler:</span>
+<span class="sd">    :param location_groups_dict:</span>
+<span class="sd">    :param Loc_Morph_Ref_Dict_All_Ch:</span>
+<span class="sd">    :param Morph_models_dict:</span>
+<span class="sd">    :param Morph_groups_All_ch:</span>
+<span class="sd">    :param n_samples:</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">for</span> <span class="n">ch</span><span class="p">,</span> <span class="n">location_groups</span> <span class="ow">in</span> <span class="p">[[</span><span class="n">ch</span><span class="p">,</span> <span class="n">location_groups_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]]</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]:</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;********</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span><span class="s1">&#39;ch&#39;</span><span class="p">,</span><span class="n">ch</span><span class="p">)</span>
+        <span class="n">Ref_Dict_indx_by_Loc_and_Morph</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">Morph_models_list_ch</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Morph_groups_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gr</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">location_groups</span><span class="p">):</span>
+            <span class="n">gates_obj_arr</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_gates_in_group</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">gr</span><span class="p">)</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">build_distance_matrix</span><span class="p">(</span><span class="n">gates_obj_arr</span><span class="p">,</span> <span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">loc_gr&#39;</span><span class="p">,</span><span class="n">gr</span><span class="p">,</span><span class="s1">&#39; #gates&#39;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">gates_obj_arr</span><span class="p">),</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="c1"># print(&#39;dist:&#39;,distance,&#39;\n&#39;)</span>
+            <span class="k">if</span> <span class="n">distance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">model</span><span class="p">,</span> <span class="n">morph_groups</span> <span class="o">=</span> <span class="n">group_gates</span><span class="p">(</span><span class="n">gates_obj_arr</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">wass_dist_threshold</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">on_location</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">distances</span> <span class="o">+=</span> <span class="p">[</span><span class="n">distance</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+                <span class="n">Morph_models_list_ch</span> <span class="o">+=</span> <span class="p">[</span><span class="n">model</span><span class="p">]</span>
+                <span class="n">Morph_groups_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">morph_groups</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">m_group</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">morph_groups</span><span class="p">):</span>
+                    <span class="n">indxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">morph_groups</span><span class="o">==</span><span class="n">m_group</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indxes</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="n">sub_matrix</span> <span class="o">=</span> <span class="n">distance</span><span class="p">[(</span><span class="n">morph_groups</span><span class="o">==</span><span class="n">m_group</span><span class="p">),:][:,(</span><span class="n">morph_groups</span><span class="o">==</span><span class="n">m_group</span><span class="p">)]</span>
+                        <span class="n">sub_indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sub_matrix</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                        <span class="n">ref_indx</span> <span class="o">=</span> <span class="n">indxes</span><span class="p">[</span><span class="n">sub_indx</span><span class="p">]</span>
+                        <span class="n">Ref_Dict_indx_by_Loc_and_Morph</span><span class="p">[</span><span class="n">gr</span><span class="p">,</span> <span class="n">m_group</span><span class="p">]</span> <span class="o">=</span> <span class="n">gates_obj_arr</span><span class="p">[</span><span class="n">ref_indx</span><span class="p">]</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;#members in group&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">indxes</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;loc_gr:</span><span class="si">{</span><span class="n">gr</span><span class="si">}</span><span class="s1">, morph_gr&#39;</span><span class="p">,</span> <span class="n">m_group</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;morph_groups&#39;</span><span class="p">,</span> <span class="n">morph_groups</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;indx of gates in morph_group </span><span class="si">{</span><span class="n">m_group</span><span class="si">}</span><span class="s1">:&#39;</span><span class="p">,</span> <span class="n">indxes</span><span class="p">)</span>
+                    <span class="c1"># Morph_Ref_Dict_indx_by_Loc[] =</span>
+                    <span class="c1"># Loc_Ref_Dict_Ch[group] =gates_obj_arr[ref_indx]</span>
+        <span class="n">Loc_Morph_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ref_Dict_indx_by_Loc_and_Morph</span>
+        <span class="n">Morph_models_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">Morph_models_list_ch</span>
+        <span class="n">Morph_groups_All_ch</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">Morph_groups_list</span></div>
 </pre></div>
 
            </div>

@@ -12,6 +12,8 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["\\(", "\\)"]], "displayMath": [["\\[", "\\]"]]}})</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -78,23 +80,29 @@ This process is quite challenging for the following reasons:</p>
 </div>
 <div class="section" id="similarity-matrix">
 <h1>Similarity Matrix<a class="headerlink" href="#similarity-matrix" title="Permalink to this headline">¶</a></h1>
-<p>Given a set P_j = {f_(0,j) (x),f_(1,j) (x),…,f_(n,j) (x)} as the marginal pdfs of every sample for the jth channel where f_(i,j) (x) ∑_(k∈K_(i,j))▒〖w_(i,j,k ) P_(i,j,k) (x) 〗, and a collection of sets B_j={B_(0,j),B_(1,j),…,B_(n,j)} where B_(i,j) is the set of watershed lines present in the jth channel of the ith sample, and B_(i,j)={b_(i,j,0),b_(i,j,1),…,b_(i,j,m_(i,j) )  } where〖 b〗_(i,j,k) is the watershed line location and  m_(i,j) is the number of watershed lines. For each B_(i,j), we calculate a set gate G_(i,j)={g_(i,j,0),g_(i,j,1),…,g_(i,j,m_(i,j)-1)}  where  g_(i,j,k) is the pair (b_(i,j,k),b_(i,j,k+1) ). This pair represents the beginning and the end of the segment respectively. A more robust gate, is called a tightened gate which is computed using quantiles on both ends of segment’s pdf (mixture component) P_(i,j,k) (x) as shown in figure().</p>
+<p>Given a set <span class="math notranslate nohighlight">\(P_j = \{ f_{0,j} (x),f_{1,j} (x),…,f_{n,j} (x) \}\)</span> as the marginal pdfs of every sample for the <span class="math notranslate nohighlight">\(j^th\)</span> channel where <span class="math notranslate nohighlight">\(f_{i,j} (x) \sum_{k∈K_{i,j}} w_{i,j,k } P_{i,j,k} (x) \)</span>, and a collection of sets <span class="math notranslate nohighlight">\(B_j= \{B_{0,j},B_{1,j},…,B_{n,j}\}\)</span> where <span class="math notranslate nohighlight">\(B_{i,j}\)</span> is the set of watershed lines present in the <span class="math notranslate nohighlight">\(j^th\)</span> channel of the <span class="math notranslate nohighlight">\(i^th\)</span> sample, and <span class="math notranslate nohighlight">\(B_{i,j}=\{b_{i,j,0},b_{i,j,1},…,b_{i,j,m_{i,j}}  \} where \)</span>b_{i,j,k}$ is the watershed line location and  <span class="math notranslate nohighlight">\(m_{i,j}\)</span> is the number of watershed lines.
+For each <span class="math notranslate nohighlight">\(B_{i,j}\)</span>, we calculate a set gate <span class="math notranslate nohighlight">\(G_{i,j}= \{g_{i,j,0},g_{i,j,1},…,g_{i,j,m_{i,j}-1)\}\)</span>  where  <span class="math notranslate nohighlight">\(g_{i,j,k}\)</span> is the pair <span class="math notranslate nohighlight">\((b_{i,j,k},b_{i,j,k+1} )\)</span>.
+This pair represents the beginning and the end of the segment respectively. A more robust gate, is called a tightened gate which is computed using quantiles on both ends of segment’s pdf (mixture component) <span class="math notranslate nohighlight">\(P_{i,j,k} (x)\)</span> as shown in figure().</p>
 <a class="reference internal image-reference" href="_images/Figure_1_samp.png"><img alt="_images/Figure_1_samp.png" src="_images/Figure_1_samp.png" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="_images/Figure_1_samp.png"><img alt="_images/Figure_1_samp.png" src="_images/Figure_1_samp.png" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="../src/imgs/Figure_2open.png"><img alt="../src/imgs/Figure_2open.png" src="../src/imgs/Figure_2open.png" style="width: 30%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_2_tight_color.png"><img alt="_images/Figure_2_tight_color.png" src="_images/Figure_2_tight_color.png" style="width: 30%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_2_open.png"><img alt="_images/Figure_2_open.png" src="_images/Figure_2_open.png" style="width: 30%;" /></a>
 </div>
 <div class="section" id="dendrogram">
 <h1>Dendrogram<a class="headerlink" href="#dendrogram" title="Permalink to this headline">¶</a></h1>
-<p>Next, we compute Jaccard distance matrix M_j for all segments. Given a channel j, the number of segments in the channel is r=∏_i^n▒m_(i,j)   and 〖SM〗_j∈R^(r×r). The entries of M_j  are the Jaccard distance between each pair of segments. Jaccard Similarity, which is a standard metric for object detection tasks, is defined as intersection over union (IOU), J(A,B)=  (<a href="#id7"><span class="problematic" id="id8">|A ∩ B|</span></a>)/(<a href="#id9"><span class="problematic" id="id10">|A ∪ B|</span></a>) , which gives a number between 0 and 1 that determines the amount of overlapping between two boxes. In our case, given two segments locations A=(a_0,a_1) and B=(b_0,b_1 ), where a_0&lt;a_1,b_0&lt;b_1, <a href="#id1"><span class="problematic" id="id2">|</span></a>A ∩ B|=|max⁡(min⁡(a_1,b_1 )-max⁡(a_0,b_0 ),0) | and <a href="#id3"><span class="problematic" id="id4">|</span></a>A ∪ B|=|max⁡〖(a_1,b_1 )-〗  min⁡(a_0,b_0 ) <a href="#id5"><span class="problematic" id="id6">|</span></a>. The Jaccard distance is defined as d_j (A,B)=1-J(A,B). the Jaccard distance matrix for channel data shown in fig() is shown in figure().</p>
+<p>Next, we compute Jaccard distance matrix <span class="math notranslate nohighlight">\(M_j\)</span> for all segments.
+Given a channel j, the number of segments in the channel is <span class="math notranslate nohighlight">\(r=\prod_{i}^{n}m_{i,j}\)</span>  and 〖SM〗_j∈R^(r×r).
+The entries of M_j  are the Jaccard distance between each pair of segments.
+Jaccard Similarity, which is a standard metric for object detection tasks, is defined as intersection over union (IOU), J(A,B)=  (<a href="#id7"><span class="problematic" id="id8">|A ∩ B|</span></a>)/(<a href="#id9"><span class="problematic" id="id10">|A ∪ B|</span></a>) , which gives a number between 0 and 1 that determines the amount of overlapping between two boxes. In our case, given two segments locations A=(a_0,a_1) and B=(b_0,b_1 ), where a_0&lt;a_1,b_0&lt;b_1, <a href="#id1"><span class="problematic" id="id2">|</span></a>A ∩ B|=|max⁡(min⁡(a_1,b_1 )-max⁡(a_0,b_0 ),0) | and <a href="#id3"><span class="problematic" id="id4">|</span></a>A ∪ B|=|max⁡〖(a_1,b_1 )-〗  min⁡(a_0,b_0 ) <a href="#id5"><span class="problematic" id="id6">|</span></a>. The Jaccard distance is defined as d_j (A,B)=1-J(A,B).
+the Jaccard distance matrix for channel data shown in fig() is shown in figure().</p>
 <a class="reference internal image-reference" href="_images/Figure_11.png"><img alt="_images/Figure_11.png" class="align-center" src="_images/Figure_11.png" style="width: 70%;" /></a>
 <p>In order to obtain locations groups, we feed the precomputed Jaccard Distance Matrix to a hierarchical agglomerative clustering algorithm, which is a bottom-up hierarchical clustering approach, that starts with each segment as a separate cluster. Based on the precomputed Jaccard distance matrix M_j and a single-linkage creation, segments are grouped together</p>
 <a class="reference internal image-reference" href="_images/Figure_10.png"><img alt="_images/Figure_10.png" class="align-center" src="_images/Figure_10.png" style="width: 70%;" /></a>
 </div>
 <div class="section" id="backtracking">
 <h1>Backtracking<a class="headerlink" href="#backtracking" title="Permalink to this headline">¶</a></h1>
-<a class="reference internal image-reference" href="_images/Figure_1_counter.png"><img alt="_images/Figure_1_counter.png" src="_images/Figure_1_counter.png" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="../src/imgs/Figure_2tight.png"><img alt="../src/imgs/Figure_2tight.png" src="../src/imgs/Figure_2tight.png" style="width: 30%;" /></a>
-<a class="reference internal image-reference" href="../src/imgs/Figure_2figures.png"><img alt="../src/imgs/Figure_2figures.png" src="../src/imgs/Figure_2figures.png" style="width: 30%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_1_counter.png"><img alt="_images/Figure_1_counter.png" src="_images/Figure_1_counter.png" style="width: 42%;" /></a>
+<a class="reference internal image-reference" href="_images/Figure_2_tight.png"><img alt="_images/Figure_2_tight.png" src="_images/Figure_2_tight.png" style="width: 42%;" /></a>
+<a class="reference internal image-reference" href="_images/graph.png"><img alt="_images/graph.png" class="align-center" src="_images/graph.png" style="width: 70%;" /></a>
 </div>
 <div class="section" id="deadlock">
 <h1>Deadlock<a class="headerlink" href="#deadlock" title="Permalink to this headline">¶</a></h1>
