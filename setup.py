@@ -9,15 +9,18 @@ setup(name='cyto_align',
       package_dir ={'':'src/cyto'},
       packages = find_packages(),
       install_requires=[
-           'numpy',
-           'scipy',
-           'pandas',
+          'numpy',
+          'scipy',
+          'pandas',
           'matplotlib',
           'statsmodels',
           'scikit-image',
           'scikit-learn',
           'seaborn',
-          'networkx'
+          'networkx',
+          'jenkspy',
+          'sklearn-contrib-py-earth',
+          'simpleai'
         ]
      )
 
