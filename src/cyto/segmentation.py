@@ -20,7 +20,7 @@ class Gate:
         :param sample_num: :obj:`int`: the sample number of which this gate belongs to.
         :param ch_num: :obj:`int`: the channel number of which this gate belongs to.
         :param gate_num_in_sample: obj:`int`, gate number in sample.
-        :param overall_indx_in_data: obj:`int`
+        :param overall_indx_in_data: obj:`int`, the overall index of a gate in the dataset.
         :ivar seg_min: :obj:`float`, minimum value in segment.
         :ivar seg_max: :obj:`float`, maximum value in segment.
         :ivar location_group: :obj:`int`, the location group number this gate belongs to.
@@ -154,7 +154,7 @@ class Sample:
         such as having access to particular channel's data, its probability density function and so forth.
         A sample is comprised of a number of channels. Each channel consists of a number of gates/segments.
 
-        :param data: :obj:`numpy.array(dtype=float)`, shape = [m, ch], A 2-D array which containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.
+        :param data: :obj:`numpy.array(dtype=float)`, shape = [m, ch], A 2-D array containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.
         :param gates_per_channel: :obj:`numpy.array(dtype=int)`, shape = [ch, 1], A 1-D array containing the number of gates in each channel. A '-1' entery means unspecified (Automatic Segmentation).
         :param sample_num: :obj:`int`, sample number in dataset.
         :param gate_factor_q: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing quantile value for each channel.

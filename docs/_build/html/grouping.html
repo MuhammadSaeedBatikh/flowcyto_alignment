@@ -122,8 +122,8 @@ else: tightens the gates with the provided quantile value (slow).</p></li>
 <code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">get_references</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_handler</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#get_references"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.get_references" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes a set of references for channel ch that satisfy good reference desiderata, namely, maximally overlapping within group and non-overlapping between connected groups.
 This is the core method of this module. First, it computes groups incidence matrix in channel ch with weights representing the number of shared samples.
-Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other consideration.
-Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking, AC-3 arc consistency, and
+Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other considerations.
+Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking search algorithm, AC-3 arc consistency, and
 Least-Constraining-Value heuristics. Finally, it checks whether a deadlock has occurred and resolve the issue by loosening the group with the least important connections.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -190,17 +190,21 @@ Location References Dictionary, Incidence Matrcies Dictionary, Loosened Groups F
 <dl class="py function">
 <dt id="src.cyto.grouping.update_morphology_hierarchy_and_refs">
 <code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">update_morphology_hierarchy_and_refs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wass_dist_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_handler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_groups_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Loc_Morph_Ref_Dict_All_Ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Morph_models_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Morph_groups_All_ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#update_morphology_hierarchy_and_refs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.update_morphology_hierarchy_and_refs" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><blockquote>
+<div><p>Recomputes morphology references for the provided channels and updates Agglomerative Model Dictionary, Morphology Group Dictionary,
+and Morphology References Dictionary.</p>
+</div></blockquote>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>channels</strong> – </p></li>
-<li><p><strong>wass_dist_threshold</strong> – </p></li>
-<li><p><strong>data_handler</strong> – </p></li>
-<li><p><strong>location_groups_dict</strong> – </p></li>
-<li><p><strong>Loc_Morph_Ref_Dict_All_Ch</strong> – </p></li>
-<li><p><strong>Morph_models_dict</strong> – </p></li>
-<li><p><strong>Morph_groups_All_ch</strong> – </p></li>
-<li><p><strong>n_samples</strong> – </p></li>
+<li><p><strong>channels</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(int)</span></code>, a list of channels to update.</p></li>
+<li><p><strong>wass_dist_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.</p></li>
+<li><p><strong>data_handler</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">DataHandler</span></code>, an updated datahandler object.</p></li>
+<li><p><strong>location_groups_dict</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code> location groups for each channel with channels numbers as its keys.</p></li>
+<li><p><strong>Loc_Morph_Ref_Dict_All_Ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Gate</span></code> chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.</p></li>
+<li><p><strong>Morph_models_dict</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of computed <code class="xref py py-obj docutils literal notranslate"><span class="pre">sklearn.cluster.AgglomerativeClustering</span></code> Agglomerative Models based on the computed Wasserstein Distance Matrices with channels numbers as its keys.</p></li>
+<li><p><strong>Morph_groups_All_ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code> morphology groups for each channel with channels numbers as its keys.</p></li>
+<li><p><strong>n_samples</strong> – obj:<cite>int</cite>, number of cells used to compute the wasserstien distance, (default = 2000).</p></li>
 </ul>
 </dd>
 </dl>

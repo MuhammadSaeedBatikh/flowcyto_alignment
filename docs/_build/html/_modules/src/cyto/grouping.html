@@ -152,7 +152,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
 
 
-    <span class="c1"># &#39;Single linkage&#39; is not coherent for it might allow separate gates in one sample to be members of the same location group</span>
+    <span class="c1"># &#39;Single linkage&#39; is not coherent for it might allow separate gates in one sample to be members of the same location group too soon.</span>
     <span class="c1"># TODO: A combination of &#39;complete linkage&#39; and punctuated Jaccard index should be used instead.</span>
 
     <span class="n">agg_model</span> <span class="o">=</span>  <span class="n">AgglomerativeClustering</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
@@ -195,8 +195,8 @@
 
 <span class="sd">    Computes a set of references for channel ch that satisfy good reference desiderata, namely, maximally overlapping within group and non-overlapping between connected groups.</span>
 <span class="sd">    This is the core method of this module. First, it computes groups incidence matrix in channel ch with weights representing the number of shared samples.</span>
-<span class="sd">    Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other consideration.</span>
-<span class="sd">    Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking, AC-3 arc consistency, and</span>
+<span class="sd">    Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other considerations.</span>
+<span class="sd">    Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking search algorithm, AC-3 arc consistency, and</span>
 <span class="sd">    Least-Constraining-Value heuristics. Finally, it checks whether a deadlock has occurred and resolve the issue by loosening the group with the least important connections.</span>
 
 <span class="sd">    :param ch: :obj:`int`, channel number.</span>
@@ -208,14 +208,15 @@
 
 <span class="sd">    &#39;&#39;&#39;</span>
 
+    <span class="c1"># getting groups and sorting gates based on their group reference scores</span>
     <span class="n">groups</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_groups_in_channel</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
-    <span class="n">groups_gates</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span>
-                        <span class="nb">sorted</span><span class="p">(</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_gates_in_group</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">g</span><span class="p">),</span>
-                               <span class="n">key</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">ga</span><span class="p">:</span> <span class="n">ga</span><span class="o">.</span><span class="n">group_ref_score</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
+    <span class="n">groups_gates</span> <span class="o">=</span> <span class="p">{</span><span class="n">gr</span><span class="p">:</span>
+                        <span class="nb">sorted</span><span class="p">(</span><span class="n">data_handler</span><span class="o">.</span><span class="n">get_gates_in_group</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">gr</span><span class="p">),</span>
+                               <span class="n">key</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">gate</span><span class="p">:</span> <span class="n">gate</span><span class="o">.</span><span class="n">group_ref_score</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">gr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span>
                     <span class="p">}</span>
 
-
+    <span class="c1"># computing group incidence matrix</span>
     <span class="n">incidence_matrix</span> <span class="o">=</span> <span class="n">data_handler</span><span class="o">.</span><span class="n">get_groups_graph_matrix_of_ch</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">incidence_matrix</span><span class="p">)</span>
 
@@ -239,6 +240,7 @@
 
 
     <span class="c1"># optimal gates if we do not care about overlapping</span>
+
     <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">groups_gates</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;optimal gates:&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span>  <span class="n">result</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -246,6 +248,7 @@
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;constraints&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">])</span>
     <span class="n">loosened_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">constraints</span><span class="p">)):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;iter </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">])</span>
         <span class="n">my_problem</span> <span class="o">=</span> <span class="n">CspProblem</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">domains</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
@@ -317,7 +320,8 @@
         <span class="n">agg_models_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">agg_model</span>
         <span class="n">location_groups_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span><span class="n">location_groups</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Unique groups&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">location_groups</span><span class="p">),</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">incidence_matrices</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">loosened_groups_for_deadlock_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_references</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">)</span></div>
+        <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">incidence_matrices</span><span class="p">[</span><span class="n">ch</span><span class="p">],</span> <span class="n">loosened_groups_for_deadlock_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_references</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">data_handler</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;loosened_groups_for_deadlock_dict[</span><span class="si">{</span><span class="n">ch</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">,</span> <span class="n">loosened_groups_for_deadlock_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="update_morphology_hierarchy_and_refs"><a class="viewcode-back" href="../../../grouping.html#src.cyto.grouping.update_morphology_hierarchy_and_refs">[docs]</a><span class="k">def</span> <span class="nf">update_morphology_hierarchy_and_refs</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span>
@@ -330,14 +334,18 @@
                                          <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">2000</span>
                                          <span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    :param channels:</span>
-<span class="sd">    :param wass_dist_threshold:</span>
-<span class="sd">    :param data_handler:</span>
-<span class="sd">    :param location_groups_dict:</span>
-<span class="sd">    :param Loc_Morph_Ref_Dict_All_Ch:</span>
-<span class="sd">    :param Morph_models_dict:</span>
-<span class="sd">    :param Morph_groups_All_ch:</span>
-<span class="sd">    :param n_samples:</span>
+
+<span class="sd">     Recomputes morphology references for the provided channels and updates Agglomerative Model Dictionary, Morphology Group Dictionary,</span>
+<span class="sd">     and Morphology References Dictionary.</span>
+
+<span class="sd">    :param channels: :obj:`list(int)`, a list of channels to update.</span>
+<span class="sd">    :param wass_dist_threshold: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.</span>
+<span class="sd">    :param data_handler: :obj:`DataHandler`, an updated datahandler object.</span>
+<span class="sd">    :param location_groups_dict: :obj:`dict`, a dictionary of :obj:`int` location groups for each channel with channels numbers as its keys.</span>
+<span class="sd">    :param Loc_Morph_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.</span>
+<span class="sd">    :param Morph_models_dict: :obj:`dict`, a dictionary of computed :obj:`sklearn.cluster.AgglomerativeClustering` Agglomerative Models based on the computed Wasserstein Distance Matrices with channels numbers as its keys.</span>
+<span class="sd">    :param Morph_groups_All_ch: :obj:`dict`, a dictionary of :obj:`int` morphology groups for each channel with channels numbers as its keys.</span>
+<span class="sd">    :param n_samples: obj:`int`, number of cells used to compute the wasserstien distance, (default = 2000).</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">for</span> <span class="n">ch</span><span class="p">,</span> <span class="n">location_groups</span> <span class="ow">in</span> <span class="p">[[</span><span class="n">ch</span><span class="p">,</span> <span class="n">location_groups_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">]]</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]:</span>

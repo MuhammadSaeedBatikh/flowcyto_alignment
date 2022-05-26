@@ -79,7 +79,7 @@
 <li><p><strong>sample_num</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>: the sample number of which this gate belongs to.</p></li>
 <li><p><strong>ch_num</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>: the channel number of which this gate belongs to.</p></li>
 <li><p><strong>gate_num_in_sample</strong> – obj:<cite>int</cite>, gate number in sample.</p></li>
-<li><p><strong>overall_indx_in_data</strong> – obj:<cite>int</cite></p></li>
+<li><p><strong>overall_indx_in_data</strong> – obj:<cite>int</cite>, the overall index of a gate in the dataset.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
@@ -146,7 +146,7 @@ A sample is comprised of a number of channels. Each channel consists of a number
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [m, ch], A 2-D array which containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.</p></li>
+<li><p><strong>data</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [m, ch], A 2-D array containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.</p></li>
 <li><p><strong>gates_per_channel</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=int)</span></code>, shape = [ch, 1], A 1-D array containing the number of gates in each channel. A ‘-1’ entery means unspecified (Automatic Segmentation).</p></li>
 <li><p><strong>sample_num</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, sample number in dataset.</p></li>
 <li><p><strong>gate_factor_q</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing quantile value for each channel.</p></li>

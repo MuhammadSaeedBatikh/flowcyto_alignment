@@ -72,13 +72,15 @@
 
     <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="sd">    :param x:</span>
-<span class="sd">    :param y:</span>
-<span class="sd">    :param mi:</span>
-<span class="sd">    :param mx:</span>
-<span class="sd">    :param q_alignment:</span>
-<span class="sd">    :param func0:</span>
-<span class="sd">    :return:</span>
+<span class="sd">    Creates a warping function that soft aligns target boundaries and mean oto corresponding reference values.</span>
+
+<span class="sd">    :param x: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing target data.</span>
+<span class="sd">    :param y: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing reference data.</span>
+<span class="sd">    :param mi: :obj:`float`, reference segment left quantile.</span>
+<span class="sd">    :param mx: :obj:`float`, reference segment right quantile.</span>
+<span class="sd">    :param q_alignment: :obj:`float`. A quantile value for robust alignment. Instead of matching min and max values of reference, the function matches q_alignment and 1-q_alignment quantiles.</span>
+<span class="sd">    :param func0: :obj:`function, the transformation that needs to be applied before the minmax_alignment, typically the inverse probability transform.</span>
+<span class="sd">    :return: :obj:`function`, a warping function that aligns the boundaries of target to reference gates.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="c1">#  f(x)   = aa x**3 + alpha * x**2 + beta*x + gamma</span>
@@ -87,12 +89,16 @@
     <span class="c1"># f(x_mx) = alpha * x_mx*2 + beta*x_mx + gamma = y_mx</span>
     <span class="c1"># f(x_mi) = alpha * x_mi*2 + beta*x_mi + gamma = y_mi</span>
 
+    <span class="c1"># TODO: ensure monotonicity. Fix bug with quadratic warping.</span>
+
     <span class="k">if</span> <span class="n">func0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">func0</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span>
 
     <span class="n">z</span> <span class="o">=</span> <span class="n">func0</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="n">ind</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
     <span class="n">x_mean</span><span class="p">,</span> <span class="n">y_mean</span> <span class="o">=</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="c1"># TODO: use the precomputed quantiles for target gate</span>
     <span class="n">x_mx</span><span class="p">,</span> <span class="n">x_mi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span><span class="mi">1</span><span class="o">-</span><span class="n">q_alignment</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="n">q_alignment</span><span class="p">)</span>
     <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
         <span class="p">[</span><span class="n">x_mx</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">x_mx</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
@@ -185,16 +191,22 @@
 
     <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="sd">    :param ref_inv_cdf:</span>
-<span class="sd">    :param target_ecdf:</span>
-<span class="sd">    :return:</span>
+<span class="sd">    A factory method for Inverse Probability Transform. The reason why it is necessary to have this kind of factory/additional layer is that</span>
+<span class="sd">    python lambdas do not store default hyperparamters for non-primitive data types and will access the most recent parameters in its closure.</span>
+<span class="sd">    By having a factory, we ensure that parameters are snapshotted in the scope of the factory and the returned lambda closure has its own unique hyperparameters.</span>
+
+<span class="sd">    :param ref_inv_cdf: :obj:`function`, inverse empirical cumulative distribution function (ECDF) of reference segment</span>
+<span class="sd">    :param target_ecdf: :obj:`function`, ECDF of target segment.</span>
+<span class="sd">    :return: :obj:`function`, inverse probability transform.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">ref_inv_cdf</span><span class="p">(</span><span class="n">target_ecdf</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ref_inv_cdf</span><span class="p">(</span><span class="n">target_ecdf</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="get_smooth_and_monotonic"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.get_smooth_and_monotonic">[docs]</a><span class="k">def</span> <span class="nf">get_smooth_and_monotonic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 
     <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    A convolution-based transform to ensure smoothness and monotonicity.</span>
 
 <span class="sd">    :param t:</span>
 <span class="sd">    :param y:</span>
@@ -211,11 +223,13 @@
 
     <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="sd">    :param x:</span>
-<span class="sd">    :param model:</span>
-<span class="sd">    :param funcs:</span>
-<span class="sd">    :param locations:</span>
-<span class="sd">    :return:</span>
+<span class="sd">    The final combined function of MARS model and segments transformations.</span>
+
+<span class="sd">    :param x: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing target data.</span>
+<span class="sd">    :param model: model: :obj:`pyearth.Earth` MARS model.</span>
+<span class="sd">    :param funcs: obj:`list(function)`, a list of warping functions for each segment.</span>
+<span class="sd">    :param locations: obj:`list(tuple)`, a list of tuples that contain the start and end range of each function.</span>
+<span class="sd">    :return: y: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing transformed target data.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -234,30 +248,39 @@
         <span class="n">y</span><span class="p">[</span><span class="n">remaining_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">remaining_ind</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">y</span></div>
 
-<div class="viewcode-block" id="combine_funcs"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.combine_funcs">[docs]</a><span class="k">def</span> <span class="nf">combine_funcs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xs_ys</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">locations</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="combine_funcs"><a class="viewcode-back" href="../../../alignment.html#src.cyto.alignment.combine_funcs">[docs]</a><span class="k">def</span> <span class="nf">combine_funcs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xs_ys</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">locations</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">subsample_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">plot</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
     <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="sd">    :param model:</span>
-<span class="sd">    :param xs_ys:</span>
-<span class="sd">    :param funcs:</span>
-<span class="sd">    :param locations:</span>
-<span class="sd">    :param plot:</span>
-<span class="sd">    :param sigma:</span>
-<span class="sd">    :param ax:</span>
-<span class="sd">    :return:</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    Creates a combined function of MARS model and every segments transformations.</span>
 
+<span class="sd">    :param model: :obj:`pyearth.Earth` MARS model.</span>
+<span class="sd">    :param xs_ys: obj:`list(list(numpy.array))`, a list of x values and transformed y values in the form of [ [target_seg1, f(target_seg1)], [target_seg2, f(target_seg2)], ...].</span>
+<span class="sd">    :param funcs: obj:`list(function)`, a list of warping functions for each segment.</span>
+<span class="sd">    :param locations: obj:`list(tuple)`, a list of tuples that contain the start and end range of each function.</span>
+<span class="sd">    :param sigma: :obj:`float`, the standard deviation of Gaussian kernel.</span>
+<span class="sd">    :param subsample_ratio: :obj:`float`, a number between [0,1]`, represents the ratio of cells to consider to estimate MARS parameters.</span>
+<span class="sd">    :param plot: :obj:`Bool`, if :obj:`True`, plots warping functions.</span>
+<span class="sd">    :param ax: :obj:`matplotlib.axes.Axes`, axes to draw on. If :obj:`None`, a new axes is created.</span>
+<span class="sd">    :return: :obj:`function`, the complete warping function for a sample&#39;s channel including its MARS regression model for extrapolation.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">xcom</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">ycom</span> <span class="o">=</span> <span class="p">[]</span>
+
     <span class="k">if</span> <span class="n">plot</span> <span class="ow">and</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">xy</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs_ys</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="c1"># x_s,y_s,_ = get_smooth_and_monotonic(xs_ys[i][0],xs_ys[i][1])</span>
-        <span class="n">x_s</span><span class="p">,</span><span class="n">y_s</span><span class="p">,</span><span class="o">=</span> <span class="n">xs_ys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">xs_ys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">xcom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x_s</span><span class="p">]</span>
-        <span class="n">ycom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y_s</span><span class="p">]</span>
+        <span class="n">x_s</span><span class="p">,</span> <span class="n">y_s</span><span class="p">,</span><span class="o">=</span> <span class="n">xs_ys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">xs_ys</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="mi">0</span><span class="o">&lt;</span><span class="n">subsample_ratio</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">x_s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">*</span><span class="n">subsample_ratio</span><span class="p">))</span>
+            <span class="n">xcom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x_s</span><span class="p">[</span><span class="n">indx</span><span class="p">]]</span>
+            <span class="n">ycom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y_s</span><span class="p">[</span><span class="n">indx</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="n">subsample_ratio</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">xcom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x_s</span><span class="p">]</span>
+            <span class="n">ycom</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y_s</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;subsample_ratio must be &gt;0 and &lt;=1, you passed </span><span class="si">{</span><span class="n">subsample_ratio</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_s</span><span class="p">,</span> <span class="n">y_s</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
     <span class="n">xcom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">xcom</span><span class="p">)</span>
@@ -282,27 +305,28 @@
                   <span class="n">funcs_dict</span><span class="p">,</span> <span class="n">comp_func_dict</span><span class="p">,</span><span class="n">earth_models_dict</span><span class="p">,</span>
                   <span class="n">gates_locations_dict</span><span class="p">,</span>
                   <span class="n">n_sample</span><span class="p">,</span>
-                  <span class="n">sigma</span><span class="p">,</span>
-                       <span class="n">earth_smoothing_penalty</span><span class="p">,</span>
+                  <span class="n">sigma</span><span class="p">,</span> <span class="n">earth_smoothing_penalty</span><span class="p">,</span> <span class="n">subsample_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                   <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-
     <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="sd">    :param ch:</span>
-<span class="sd">    :param q_alignment:</span>
-<span class="sd">    :param samples:</span>
-<span class="sd">    :param aligned_samples:</span>
-<span class="sd">    :param original_samples:</span>
-<span class="sd">    :param Loc_Ref_Dict_All_Ch:</span>
-<span class="sd">    :param Loc_Morph_Ref_Dict_All_Ch:</span>
-<span class="sd">    :param funcs_dict:</span>
-<span class="sd">    :param comp_func_dict:</span>
-<span class="sd">    :param earth_models_dict:</span>
-<span class="sd">    :param gates_locations_dict:</span>
-<span class="sd">    :param n_sample:</span>
-<span class="sd">    :param sigma:</span>
-<span class="sd">    :param verbose:</span>
-<span class="sd">    :return:</span>
+<span class="sd">    Transforms channel ch unaligned data to aligned data based on the provided references and fills in the provided aligned samples dictionary.</span>
+
+<span class="sd">    :param ch: :obj:`int`, channel number.</span>
+<span class="sd">    :param q_alignment: :obj:`float`. A quantile value for robust alignment. Instead of matching min and max values of reference, the function matches q_alignment and 1-q_alignment quantiles.</span>
+<span class="sd">    :param samples: :obj:`list(Sample)`, a list of all samples in data as :obj:`Sample` objects.</span>
+<span class="sd">    :param aligned_samples: :obj:`dict`, a dictionary of :obj:`numpy.array(dtype=float)` aligned_samples,  with its keys is represented as the tupel (sample number, channel).</span>
+<span class="sd">    :param original_samples: :obj:`dict`, a dictionary of :obj:`numpy.array(dtype=float)` original_samples, morphology groups for each channel with channels numbers as its keys.</span>
+<span class="sd">    :param Loc_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen reference gates for all channels with channels numbers as its keys.</span>
+<span class="sd">    :param Loc_Morph_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.</span>
+<span class="sd">    :param funcs_dict: :obj:`dict`, a dictionary of :obj:`list` warping functions for each gate in a channel of a sample, with its keys is represented as the tupel (sample number, channel).</span>
+<span class="sd">    :param comp_func_dict: :obj:`dict`, a dictionary of :obj:`function` combined warping functions for each channel in each sample, with its keys is represented as the tupel (sample number, channel).</span>
+<span class="sd">    :param earth_models_dict: :obj:`dict`, a dictionary of :obj:`pyearth.Earth` MARS models for each channel in each sample, with its keys is represented as the tupel (sample number, channel).</span>
+<span class="sd">    :param gates_locations_dict: :obj:`dict`, a dictionary of :obj:`list` location of gates,  with its keys is represented as the tupel (sample number, channel).</span>
+<span class="sd">    :param n_sample: obj:`int`, number os samples to align.</span>
+<span class="sd">    :param sigma: :obj:`float`, the standard deviation of Gaussian kernel.</span>
+<span class="sd">    :param earth_smoothing_penalty: :obj:`float`, A smoothing parameter used to calculate generalized cross validation. Used during the pruning pass and to determine whether to add a hinge or linear basis function during the forward pass.</span>
+<span class="sd">    :param subsample_ratio: :obj:`float`, a number between [0,1]`, represents the ratio of cells to consider to estimate MARS parameters.</span>
+<span class="sd">    :param verbose: :obj:`Bool`, if :obj:`True`, prints all information about all gates in each channel in sample.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="n">Ref_Dict_indx_by_Loc_and_Morph</span> <span class="o">=</span> <span class="n">Loc_Morph_Ref_Dict_All_Ch</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span>
@@ -336,9 +360,14 @@
             <span class="k">if</span> <span class="n">mr_gr_ref</span><span class="p">:</span>
                 <span class="n">ref_seg1</span> <span class="o">=</span> <span class="n">mr_gr_ref</span><span class="o">.</span><span class="n">segment</span>
                 <span class="k">if</span> <span class="n">mr_gr_ref</span> <span class="o">!=</span> <span class="n">target_gate</span><span class="p">:</span>
+
+                    <span class="c1"># Compute empirical cumulative distribution function for the reference segment</span>
                     <span class="n">ref_ecdf</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">empirical_distribution</span><span class="o">.</span><span class="n">ECDF</span><span class="p">(</span><span class="n">ref_seg1</span><span class="p">)</span>
+                    <span class="c1"># Compute the inverse of the ECDF of reference using monotone function inverter</span>
                     <span class="n">ref_inv_cdf</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">empirical_distribution</span><span class="o">.</span><span class="n">monotone_fn_inverter</span><span class="p">(</span><span class="n">ref_ecdf</span><span class="p">,</span>
                                                                                                <span class="n">ref_seg1</span><span class="p">)</span>
+                    <span class="c1"># fit a BSpline tp inverse ECDF</span>
+
                     <span class="n">ref_inv_cdf</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">BSpline</span><span class="p">(</span>
                         <span class="n">ref_inv_cdf</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
                         <span class="n">ref_inv_cdf</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
@@ -346,6 +375,7 @@
                                                                      <span class="n">extrapolate</span><span class="o">=</span><span class="kc">False</span>
                                                                      <span class="p">)</span>
 
+                    <span class="c1"># Inverse Probability Transform</span>
                     <span class="n">func0</span> <span class="o">=</span> <span class="n">lambda_warp_factory</span><span class="p">(</span><span class="n">ref_inv_cdf</span><span class="p">,</span> <span class="n">target_ecdf</span><span class="p">)</span>
 
                     <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Morph_IPT&#39;</span>
@@ -353,16 +383,16 @@
                     <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="s1">&#39;Mroph_Ref &#39;</span>
                     <span class="n">func0</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">x</span>
 
-            <span class="n">n_mi</span><span class="p">,</span> <span class="n">n_mx</span> <span class="o">=</span> <span class="n">ref_gate</span><span class="o">.</span><span class="n">get_tight_gates</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="n">q_alignment</span><span class="p">)</span>
+            <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">ref_gate</span><span class="o">.</span><span class="n">get_tight_gates</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="n">q_alignment</span><span class="p">)</span>
             <span class="n">refs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">mr_gr_ref</span><span class="p">:</span>
-                <span class="n">funcf</span> <span class="o">=</span> <span class="n">minmaxmean_align</span><span class="p">(</span><span class="n">target_seg1</span> <span class="p">,</span><span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">,</span> <span class="n">n_mi</span><span class="p">,</span> <span class="n">n_mx</span><span class="p">,</span> <span class="n">q_alignment</span><span class="p">,</span> <span class="n">func0</span><span class="p">)</span>
+                <span class="n">funcf</span> <span class="o">=</span> <span class="n">minmaxmean_align</span><span class="p">(</span><span class="n">target_seg1</span> <span class="p">,</span><span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">,</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q_alignment</span><span class="p">,</span> <span class="n">func0</span><span class="p">)</span>
 
                 <span class="n">type_of_alignment</span> <span class="o">=</span> <span class="n">type_of_alignment</span> <span class="o">+</span> <span class="s1">&#39; Loc_MinMax&#39;</span> <span class="k">if</span> <span class="n">mr_gr_ref</span> <span class="o">!=</span> <span class="n">target_gate</span> <span class="k">else</span> \
                     <span class="n">type_of_alignment</span> <span class="o">+</span> <span class="s1">&#39; Loc_Ref&#39;</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">funcf</span> <span class="o">=</span> <span class="n">minmaxmean_align</span><span class="p">(</span><span class="n">target_seg1</span><span class="p">,</span> <span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">,</span> <span class="n">n_mi</span><span class="p">,</span> <span class="n">n_mx</span><span class="p">,</span><span class="n">q_alignment</span><span class="p">)</span>
+                <span class="n">funcf</span> <span class="o">=</span> <span class="n">minmaxmean_align</span><span class="p">(</span><span class="n">target_seg1</span><span class="p">,</span> <span class="n">ref_gate</span><span class="o">.</span><span class="n">segment</span><span class="p">,</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q_alignment</span><span class="p">)</span>
                 <span class="n">type_of_alignment</span> <span class="o">=</span><span class="s1">&#39;minmax&#39;</span>
 
             <span class="n">funcs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">funcf</span><span class="p">]</span>
@@ -378,10 +408,10 @@
             <span class="n">gates_locations</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_gate</span><span class="o">.</span><span class="n">gate</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span>
 
         <span class="n">model</span> <span class="o">=</span> <span class="n">Earth</span><span class="p">(</span><span class="n">penalty</span><span class="o">=</span><span class="n">earth_smoothing_penalty</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_degree</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
-        <span class="n">comp_func</span> <span class="o">=</span> <span class="n">combine_funcs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xys</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">gates_locations</span><span class="p">,</span><span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">comp_func</span> <span class="o">=</span> <span class="n">combine_funcs</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">xys</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">gates_locations</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">subsample_ratio</span><span class="o">=</span><span class="n">subsample_ratio</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">comp_func_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">,</span> <span class="n">targ_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp_func</span>
         <span class="n">earth_models_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">,</span> <span class="n">targ_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
-        <span class="n">funcs_dict</span><span class="p">[</span><span class="n">ch</span><span class="p">,</span> <span class="n">targ_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">funcs</span>
+        <span class="n">funcs_dict</span><span class="p">[</span><span class="n">targ_num</span><span class="p">,</span> <span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">funcs</span>
 
         <span class="n">sample_aligned</span> <span class="o">=</span> <span class="n">comp_func</span><span class="p">(</span><span class="n">sample_orignal</span><span class="p">)</span>
         <span class="n">aligned_samples</span><span class="p">[</span><span class="n">targ_num</span><span class="p">,</span> <span class="n">ch</span><span class="p">]</span> <span class="o">=</span> <span class="n">sample_aligned</span>

@@ -91,7 +91,7 @@ def group_gates(gates, dist_matrix, threshold, on_location= True):
     '''
 
 
-    # 'Single linkage' is not coherent for it might allow separate gates in one sample to be members of the same location group
+    # 'Single linkage' is not coherent for it might allow separate gates in one sample to be members of the same location group too soon.
     # TODO: A combination of 'complete linkage' and punctuated Jaccard index should be used instead.
 
     agg_model =  AgglomerativeClustering(None,
@@ -134,8 +134,8 @@ def get_references(ch, data_handler):
 
     Computes a set of references for channel ch that satisfy good reference desiderata, namely, maximally overlapping within group and non-overlapping between connected groups.
     This is the core method of this module. First, it computes groups incidence matrix in channel ch with weights representing the number of shared samples.
-    Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other consideration.
-    Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking, AC-3 arc consistency, and
+    Second, it sorts the data based on internal group reference scores which measure the goodness of reference for its own group each regardless of other considerations.
+    Third, it builds a list of binary constraints based on connectivity between groups. Fourth, it searches the space for possible solutions using backtracking search algorithm, AC-3 arc consistency, and
     Least-Constraining-Value heuristics. Finally, it checks whether a deadlock has occurred and resolve the issue by loosening the group with the least important connections.
 
     :param ch: :obj:`int`, channel number.
@@ -147,14 +147,15 @@ def get_references(ch, data_handler):
 
     '''
 
+    # getting groups and sorting gates based on their group reference scores
     groups = data_handler.get_groups_in_channel(ch)
-    groups_gates = {g:
-                        sorted(data_handler.get_gates_in_group(ch, g),
-                               key= lambda ga: ga.group_ref_score, reverse=True)
-                        for i, g in enumerate(groups)
+    groups_gates = {gr:
+                        sorted(data_handler.get_gates_in_group(ch, gr),
+                               key= lambda gate: gate.group_ref_score, reverse=True)
+                        for i, gr in enumerate(groups)
                     }
 
-
+    # computing group incidence matrix
     incidence_matrix = data_handler.get_groups_graph_matrix_of_ch(ch)
     print(incidence_matrix)
 
@@ -178,6 +179,7 @@ def get_references(ch, data_handler):
 
 
     # optimal gates if we do not care about overlapping
+
     result = {key:value[0] for key, value in groups_gates.items()}
     print('optimal gates:')
     for r in  result.values():
@@ -185,6 +187,7 @@ def get_references(ch, data_handler):
 
     print('constraints', [c[0] for c in constraints])
     loosened_constraints = []
+
     for i in range(len(constraints)):
         print(f'iter {i}', [c[0] for c in constraints])
         my_problem = CspProblem(variables, domains, constraints)
@@ -257,6 +260,7 @@ def recompute_and_update_location_hierarchy_and_refs(channels, data_handler, jac
         location_groups_dict[ch] =location_groups
         print('Unique groups', np.unique(location_groups),'\n'*2)
         Loc_Ref_Dict_All_Ch[ch], incidence_matrices[ch], loosened_groups_for_deadlock_dict[ch] = get_references(ch, data_handler)
+        print(f'loosened_groups_for_deadlock_dict[{ch}]', loosened_groups_for_deadlock_dict[ch])
 
 
 def update_morphology_hierarchy_and_refs(channels,
@@ -269,14 +273,18 @@ def update_morphology_hierarchy_and_refs(channels,
                                          n_samples = 2000
                                          ):
     '''
-    :param channels:
-    :param wass_dist_threshold:
-    :param data_handler:
-    :param location_groups_dict:
-    :param Loc_Morph_Ref_Dict_All_Ch:
-    :param Morph_models_dict:
-    :param Morph_groups_All_ch:
-    :param n_samples:
+
+     Recomputes morphology references for the provided channels and updates Agglomerative Model Dictionary, Morphology Group Dictionary,
+     and Morphology References Dictionary.
+
+    :param channels: :obj:`list(int)`, a list of channels to update.
+    :param wass_dist_threshold: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.
+    :param data_handler: :obj:`DataHandler`, an updated datahandler object.
+    :param location_groups_dict: :obj:`dict`, a dictionary of :obj:`int` location groups for each channel with channels numbers as its keys.
+    :param Loc_Morph_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.
+    :param Morph_models_dict: :obj:`dict`, a dictionary of computed :obj:`sklearn.cluster.AgglomerativeClustering` Agglomerative Models based on the computed Wasserstein Distance Matrices with channels numbers as its keys.
+    :param Morph_groups_All_ch: :obj:`dict`, a dictionary of :obj:`int` morphology groups for each channel with channels numbers as its keys.
+    :param n_samples: obj:`int`, number of cells used to compute the wasserstien distance, (default = 2000).
     '''
 
     for ch, location_groups in [[ch, location_groups_dict[ch]] for ch in channels]:

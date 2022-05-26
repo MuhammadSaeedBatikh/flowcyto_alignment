@@ -12,9 +12,9 @@ def load_data(path, sample_code_column= 'sample_code', sep=','):
 
     loads data from disk.
 
-    :param path:
-    :param sample_code_column:
-    :param sep:
+    :param path: :obj:`Str`, data path.
+    :param sample_code_column: :obj:`Str`, name of the column of sample codes/ labels.
+    :param sep: :obj:`Str`, data separator.
     :return:
     '''
 

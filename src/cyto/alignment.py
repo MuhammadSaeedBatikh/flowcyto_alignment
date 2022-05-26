@@ -11,13 +11,15 @@ def minmaxmean_align(x,y, mi, mx, q_alignment, func0 = None):
 
     '''
 
-    :param x:
-    :param y:
-    :param mi:
-    :param mx:
-    :param q_alignment:
-    :param func0:
-    :return:
+    Creates a warping function that soft aligns target boundaries and mean oto corresponding reference values.
+
+    :param x: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing target data.
+    :param y: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing reference data.
+    :param mi: :obj:`float`, reference segment left quantile.
+    :param mx: :obj:`float`, reference segment right quantile.
+    :param q_alignment: :obj:`float`. A quantile value for robust alignment. Instead of matching min and max values of reference, the function matches q_alignment and 1-q_alignment quantiles.
+    :param func0: :obj:`function, the transformation that needs to be applied before the minmax_alignment, typically the inverse probability transform.
+    :return: :obj:`function`, a warping function that aligns the boundaries of target to reference gates.
     '''
 
     #  f(x)   = aa x**3 + alpha * x**2 + beta*x + gamma
@@ -26,12 +28,16 @@ def minmaxmean_align(x,y, mi, mx, q_alignment, func0 = None):
     # f(x_mx) = alpha * x_mx*2 + beta*x_mx + gamma = y_mx
     # f(x_mi) = alpha * x_mi*2 + beta*x_mi + gamma = y_mi
 
+    # TODO: ensure monotonicity. Fix bug with quadratic warping.
+
     if func0 is None:
         func0 = lambda x:x
 
     z = func0(x)
     ind = ~np.isnan(z)
     x_mean, y_mean =z[ind].mean(), y.mean()
+
+    # TODO: use the precomputed quantiles for target gate
     x_mx, x_mi = np.quantile(z[ind],1-q_alignment), np.quantile(z[ind], q_alignment)
     M = np.array([
         [x_mx**2, x_mx, 1],
@@ -124,16 +130,22 @@ def lambda_warp_factory(ref_inv_cdf, target_ecdf):
 
     '''
 
-    :param ref_inv_cdf:
-    :param target_ecdf:
-    :return:
+    A factory method for Inverse Probability Transform. The reason why it is necessary to have this kind of factory/additional layer is that
+    python lambdas do not store default hyperparamters for non-primitive data types and will access the most recent parameters in its closure.
+    By having a factory, we ensure that parameters are snapshotted in the scope of the factory and the returned lambda closure has its own unique hyperparameters.
+
+    :param ref_inv_cdf: :obj:`function`, inverse empirical cumulative distribution function (ECDF) of reference segment
+    :param target_ecdf: :obj:`function`, ECDF of target segment.
+    :return: :obj:`function`, inverse probability transform.
     '''
 
-    return lambda x:ref_inv_cdf(target_ecdf(x))
+    return lambda x: ref_inv_cdf(target_ecdf(x))
 
 def get_smooth_and_monotonic(t, y):
 
     '''
+
+    A convolution-based transform to ensure smoothness and monotonicity.
 
     :param t:
     :param y:
@@ -150,11 +162,13 @@ def combined(x, model, funcs, locations, sigma ):
 
     '''
 
-    :param x:
-    :param model:
-    :param funcs:
-    :param locations:
-    :return:
+    The final combined function of MARS model and segments transformations.
+
+    :param x: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing target data.
+    :param model: model: :obj:`pyearth.Earth` MARS model.
+    :param funcs: obj:`list(function)`, a list of warping functions for each segment.
+    :param locations: obj:`list(tuple)`, a list of tuples that contain the start and end range of each function.
+    :return: y: :obj:`numpy.array(dtype=float)`, shape = [1, n], A 1-D array containing transformed target data.
     '''
 
     y = np.zeros(x.shape)
@@ -173,30 +187,39 @@ def combined(x, model, funcs, locations, sigma ):
         y[remaining_ind] = model.predict(x[remaining_ind])
     return y
 
-def combine_funcs(model, xs_ys, funcs, locations, sigma, plot = True, ax = None):
+def combine_funcs(model, xs_ys, funcs, locations, sigma, subsample_ratio=1, plot = True, ax = None):
 
     '''
 
-    :param model:
-    :param xs_ys:
-    :param funcs:
-    :param locations:
-    :param plot:
-    :param sigma:
-    :param ax:
-    :return:
-    '''
+    Creates a combined function of MARS model and every segments transformations.
 
+    :param model: :obj:`pyearth.Earth` MARS model.
+    :param xs_ys: obj:`list(list(numpy.array))`, a list of x values and transformed y values in the form of [ [target_seg1, f(target_seg1)], [target_seg2, f(target_seg2)], ...].
+    :param funcs: obj:`list(function)`, a list of warping functions for each segment.
+    :param locations: obj:`list(tuple)`, a list of tuples that contain the start and end range of each function.
+    :param sigma: :obj:`float`, the standard deviation of Gaussian kernel.
+    :param subsample_ratio: :obj:`float`, a number between [0,1]`, represents the ratio of cells to consider to estimate MARS parameters.
+    :param plot: :obj:`Bool`, if :obj:`True`, plots warping functions.
+    :param ax: :obj:`matplotlib.axes.Axes`, axes to draw on. If :obj:`None`, a new axes is created.
+    :return: :obj:`function`, the complete warping function for a sample's channel including its MARS regression model for extrapolation.
+    '''
     xcom = []
     ycom = []
+
     if plot and ax is None:
         ax = plt.subplots(1,1)[1]
     for i, xy in enumerate(xs_ys):
-        print(i)
-        # x_s,y_s,_ = get_smooth_and_monotonic(xs_ys[i][0],xs_ys[i][1])
-        x_s,y_s,= xs_ys[i][0],xs_ys[i][1]
-        xcom += [x_s]
-        ycom += [y_s]
+        x_s, y_s,= xs_ys[i][0],xs_ys[i][1]
+        if 0<subsample_ratio<1:
+            m = x_s.shape[0]
+            indx = np.random.randint(0, m, int(m*subsample_ratio))
+            xcom += [x_s[indx]]
+            ycom += [y_s[indx]]
+        elif subsample_ratio == 1:
+            xcom += [x_s]
+            ycom += [y_s]
+        else:
+            raise Exception(f'subsample_ratio must be >0 and <=1, you passed {subsample_ratio}')
         if plot:
             ax.plot(x_s, y_s, linewidth=3)
     xcom = np.concatenate(xcom)
@@ -221,27 +244,28 @@ def align_samples_func(ch, q_alignment,
                   funcs_dict, comp_func_dict,earth_models_dict,
                   gates_locations_dict,
                   n_sample,
-                  sigma,
-                       earth_smoothing_penalty,
+                  sigma, earth_smoothing_penalty, subsample_ratio=1,
                   verbose=False):
-
     '''
 
-    :param ch:
-    :param q_alignment:
-    :param samples:
-    :param aligned_samples:
-    :param original_samples:
-    :param Loc_Ref_Dict_All_Ch:
-    :param Loc_Morph_Ref_Dict_All_Ch:
-    :param funcs_dict:
-    :param comp_func_dict:
-    :param earth_models_dict:
-    :param gates_locations_dict:
-    :param n_sample:
-    :param sigma:
-    :param verbose:
-    :return:
+    Transforms channel ch unaligned data to aligned data based on the provided references and fills in the provided aligned samples dictionary.
+
+    :param ch: :obj:`int`, channel number.
+    :param q_alignment: :obj:`float`. A quantile value for robust alignment. Instead of matching min and max values of reference, the function matches q_alignment and 1-q_alignment quantiles.
+    :param samples: :obj:`list(Sample)`, a list of all samples in data as :obj:`Sample` objects.
+    :param aligned_samples: :obj:`dict`, a dictionary of :obj:`numpy.array(dtype=float)` aligned_samples,  with its keys is represented as the tupel (sample number, channel).
+    :param original_samples: :obj:`dict`, a dictionary of :obj:`numpy.array(dtype=float)` original_samples, morphology groups for each channel with channels numbers as its keys.
+    :param Loc_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen reference gates for all channels with channels numbers as its keys.
+    :param Loc_Morph_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.
+    :param funcs_dict: :obj:`dict`, a dictionary of :obj:`list` warping functions for each gate in a channel of a sample, with its keys is represented as the tupel (sample number, channel).
+    :param comp_func_dict: :obj:`dict`, a dictionary of :obj:`function` combined warping functions for each channel in each sample, with its keys is represented as the tupel (sample number, channel).
+    :param earth_models_dict: :obj:`dict`, a dictionary of :obj:`pyearth.Earth` MARS models for each channel in each sample, with its keys is represented as the tupel (sample number, channel).
+    :param gates_locations_dict: :obj:`dict`, a dictionary of :obj:`list` location of gates,  with its keys is represented as the tupel (sample number, channel).
+    :param n_sample: obj:`int`, number os samples to align.
+    :param sigma: :obj:`float`, the standard deviation of Gaussian kernel.
+    :param earth_smoothing_penalty: :obj:`float`, A smoothing parameter used to calculate generalized cross validation. Used during the pruning pass and to determine whether to add a hinge or linear basis function during the forward pass.
+    :param subsample_ratio: :obj:`float`, a number between [0,1]`, represents the ratio of cells to consider to estimate MARS parameters.
+    :param verbose: :obj:`Bool`, if :obj:`True`, prints all information about all gates in each channel in sample.
     '''
 
     Ref_Dict_indx_by_Loc_and_Morph = Loc_Morph_Ref_Dict_All_Ch[ch]
@@ -275,9 +299,14 @@ def align_samples_func(ch, q_alignment,
             if mr_gr_ref:
                 ref_seg1 = mr_gr_ref.segment
                 if mr_gr_ref != target_gate:
+
+                    # Compute empirical cumulative distribution function for the reference segment
                     ref_ecdf = sm.distributions.empirical_distribution.ECDF(ref_seg1)
+                    # Compute the inverse of the ECDF of reference using monotone function inverter
                     ref_inv_cdf = sm.distributions.empirical_distribution.monotone_fn_inverter(ref_ecdf,
                                                                                                ref_seg1)
+                    # fit a BSpline tp inverse ECDF
+
                     ref_inv_cdf = scipy.interpolate.BSpline(
                         ref_inv_cdf.x,
                         ref_inv_cdf.y,
@@ -285,6 +314,7 @@ def align_samples_func(ch, q_alignment,
                                                                      extrapolate=False
                                                                      )
 
+                    # Inverse Probability Transform
                     func0 = lambda_warp_factory(ref_inv_cdf, target_ecdf)
 
                     type_of_alignment = f'Morph_IPT'
@@ -292,16 +322,16 @@ def align_samples_func(ch, q_alignment,
                     type_of_alignment = 'Mroph_Ref '
                     func0 = lambda x : x
 
-            n_mi, n_mx = ref_gate.get_tight_gates(q=q_alignment)
+            q0, q1 = ref_gate.get_tight_gates(q=q_alignment)
             refs += [ref_gate.segment]
             if mr_gr_ref:
-                funcf = minmaxmean_align(target_seg1 ,ref_gate.segment, n_mi, n_mx, q_alignment, func0)
+                funcf = minmaxmean_align(target_seg1 ,ref_gate.segment, q0, q1, q_alignment, func0)
 
                 type_of_alignment = type_of_alignment + ' Loc_MinMax' if mr_gr_ref != target_gate else \
                     type_of_alignment + ' Loc_Ref'
 
             else:
-                funcf = minmaxmean_align(target_seg1, ref_gate.segment, n_mi, n_mx,q_alignment)
+                funcf = minmaxmean_align(target_seg1, ref_gate.segment, q0, q1, q_alignment)
                 type_of_alignment ='minmax'
 
             funcs += [funcf]
@@ -317,10 +347,10 @@ def align_samples_func(ch, q_alignment,
             gates_locations += [[target_gate.gate[0], target_gate.gate[1]]]
 
         model = Earth(penalty=earth_smoothing_penalty, smooth=True, max_degree=1, )
-        comp_func = combine_funcs(model, xys, funcs, gates_locations,sigma=sigma, plot=False)
+        comp_func = combine_funcs(model, xys, funcs, gates_locations, sigma=sigma, subsample_ratio=subsample_ratio, plot=False)
         comp_func_dict[ch, targ_num] = comp_func
         earth_models_dict[ch, targ_num] = model
-        funcs_dict[ch, targ_num] = funcs
+        funcs_dict[targ_num, ch] = funcs
 
         sample_aligned = comp_func(sample_orignal)
         aligned_samples[targ_num, ch] = sample_aligned

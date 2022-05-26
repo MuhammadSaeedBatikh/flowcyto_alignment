@@ -81,7 +81,7 @@
 <span class="sd">        :param sample_num: :obj:`int`: the sample number of which this gate belongs to.</span>
 <span class="sd">        :param ch_num: :obj:`int`: the channel number of which this gate belongs to.</span>
 <span class="sd">        :param gate_num_in_sample: obj:`int`, gate number in sample.</span>
-<span class="sd">        :param overall_indx_in_data: obj:`int`</span>
+<span class="sd">        :param overall_indx_in_data: obj:`int`, the overall index of a gate in the dataset.</span>
 <span class="sd">        :ivar seg_min: :obj:`float`, minimum value in segment.</span>
 <span class="sd">        :ivar seg_max: :obj:`float`, maximum value in segment.</span>
 <span class="sd">        :ivar location_group: :obj:`int`, the location group number this gate belongs to.</span>
@@ -215,7 +215,7 @@
 <span class="sd">        such as having access to particular channel&#39;s data, its probability density function and so forth.</span>
 <span class="sd">        A sample is comprised of a number of channels. Each channel consists of a number of gates/segments.</span>
 
-<span class="sd">        :param data: :obj:`numpy.array(dtype=float)`, shape = [m, ch], A 2-D array which containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.</span>
+<span class="sd">        :param data: :obj:`numpy.array(dtype=float)`, shape = [m, ch], A 2-D array containing the original data (rows = cells, columns = channels). m = number of cells, ch= number of channels.</span>
 <span class="sd">        :param gates_per_channel: :obj:`numpy.array(dtype=int)`, shape = [ch, 1], A 1-D array containing the number of gates in each channel. A &#39;-1&#39; entery means unspecified (Automatic Segmentation).</span>
 <span class="sd">        :param sample_num: :obj:`int`, sample number in dataset.</span>
 <span class="sd">        :param gate_factor_q: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing quantile value for each channel.</span>
