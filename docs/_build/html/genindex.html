@@ -67,6 +67,7 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
@@ -87,6 +88,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="alignment.html#src.cyto.alignment.align_samples_func">align_samples_func() (in module src.cyto.alignment)</a>
+</li>
+      <li><a href="grouping.html#src.cyto.grouping.assign_location_and_morphology_groups_from_JM">assign_location_and_morphology_groups_from_JM() (in module src.cyto.grouping)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -116,11 +119,17 @@
 </li>
       <li><a href="alignment.html#src.cyto.alignment.combine_funcs">combine_funcs() (in module src.cyto.alignment)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="alignment.html#src.cyto.alignment.combined">combined() (in module src.cyto.alignment)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pipeline.html#src.cyto.pipeline.Pipeline.commit_changes">commit_changes() (src.cyto.pipeline.Pipeline method)</a>
+</li>
+      <li><a href="alignment.html#src.cyto.alignment.compute_cdf_and_inv_cdf">compute_cdf_and_inv_cdf() (in module src.cyto.alignment)</a>
+</li>
+      <li><a href="grouping.html#src.cyto.grouping.compute_constraints">compute_constraints() (in module src.cyto.grouping)</a>
+</li>
+      <li><a href="pipeline.html#src.cyto.pipeline.Pipeline.compute_location_morphology_groups_from_manual_refs">compute_location_morphology_groups_from_manual_refs() (src.cyto.pipeline.Pipeline method)</a>
 </li>
       <li><a href="segmentation.html#src.cyto.segmentation.convert_gates_to_watershed_lines">convert_gates_to_watershed_lines() (in module src.cyto.segmentation)</a>
 </li>
@@ -143,6 +152,10 @@
       <li><a href="pipeline.html#src.cyto.pipeline.Pipeline.end_to_end_align">end_to_end_align() (src.cyto.pipeline.Pipeline method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="alignment.html#src.cyto.alignment.estimate_alignment_funcs_for_target">estimate_alignment_funcs_for_target() (in module src.cyto.alignment)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
@@ -158,12 +171,14 @@
 </li>
       <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.get_gates_of_channel">get_gates_of_channel() (src.cyto.pipeline.DataHandler method)</a>
 </li>
-      <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.get_groups_graph_matrix_of_ch">get_groups_graph_matrix_of_ch() (src.cyto.pipeline.DataHandler method)</a>
+      <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.get_gates_of_channel_dictionary_indexed_by_sample_num">get_gates_of_channel_dictionary_indexed_by_sample_num() (src.cyto.pipeline.DataHandler method)</a>
 </li>
-      <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.get_groups_in_channel">get_groups_in_channel() (src.cyto.pipeline.DataHandler method)</a>
+      <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.get_groups_graph_matrix_of_ch">get_groups_graph_matrix_of_ch() (src.cyto.pipeline.DataHandler method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.get_groups_in_channel">get_groups_in_channel() (src.cyto.pipeline.DataHandler method)</a>
+</li>
       <li><a href="grouping.html#src.cyto.grouping.get_references">get_references() (in module src.cyto.grouping)</a>
 </li>
       <li><a href="alignment.html#src.cyto.alignment.get_smooth_and_monotonic">get_smooth_and_monotonic() (in module src.cyto.alignment)</a>
@@ -181,6 +196,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pipeline.html#src.cyto.pipeline.DataHandler.index_gates_by_sample_number">index_gates_by_sample_number() (src.cyto.pipeline.DataHandler method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="J">J</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -192,7 +215,7 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="alignment.html#src.cyto.alignment.lambda_warp_factory">lambda_warp_factory() (in module src.cyto.alignment)</a>
+      <li><a href="alignment.html#src.cyto.alignment.lambda_IPT_factory">lambda_IPT_factory() (in module src.cyto.alignment)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -295,6 +318,8 @@
 </li>
       <li><a href="segmentation.html#src.cyto.segmentation.segment_func">segment_func() (in module src.cyto.segmentation)</a>
 </li>
+      <li><a href="grouping.html#src.cyto.grouping.set_references_manually">set_references_manually() (in module src.cyto.grouping)</a>
+</li>
       <li>
     src.cyto.alignment
 
@@ -309,6 +334,8 @@
         <li><a href="grouping.html#module-src.cyto.grouping">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     src.cyto.helpers
 
@@ -316,8 +343,6 @@
         <li><a href="helpers.html#module-src.cyto.helpers">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     src.cyto.pipeline
 

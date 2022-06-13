@@ -56,6 +56,7 @@ class Gate:
         self.location_group = 0
         self.group_ref_score = 0
         self.is_location_reference = False
+        self.leave_to_MARS = False
         # morphology_group is relative to location_group
         self.morphology_group = 0
         self.aligned_flag = 0

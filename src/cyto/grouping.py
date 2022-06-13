@@ -1,22 +1,26 @@
 from sklearn.cluster import AgglomerativeClustering
 from simpleai.search import CspProblem, backtrack,min_conflicts, MOST_CONSTRAINED_VARIABLE, LEAST_CONSTRAINING_VALUE
-from src.cyto.helpers import *
+from helpers import *
+import copy
 
-def build_similarity_matrix(gates, gate_q_factor = None):
+
+
+def build_similarity_matrix(gates, gate_q_factor = None, partial_columns = -1):
     '''
 
     Computes a matrix of Jaccard similarity indices between gates.
 
     :param gates: :obj:`list(Gate)`, :obj:`len(gates) = m` where m is the number of gates.
     :param gate_q_factor: :obj:`float`, tightening the gates using quantiles
+    :param partial_columns: :obj:`list`, a list of gates indices to compute Jaccard similarity for across all other gates such that the result is a numpy.array`, :obj:`shape = [m, len(partial_columns)].(default = -1), creates square matrix and compares all gates.
                                 if :obj:`None`: uses the original tight_gate in the gate object
                                 if :obj:`-1`: uses open-ended gates
                                 else: tightens the gates with the provided quantile value (slow).
     :return: :obj:`numpy.array`, :obj:`shape = [m, m]` A similarity matrix with Jaccard indices as entries.
     '''
 
-
-    Sim_Matrix = np.ones(shape=(len(gates), len(gates)))
+    columns = list(range(len(gates))) if partial_columns ==-1 else partial_columns
+    Sim_Matrix = np.ones(shape=(len(gates), len(columns)))
     print('here')
     for i in range(len(gates)):
         # this if-block is redundant to avoid computing quantiles multiple times for gate_A.
@@ -27,7 +31,7 @@ def build_similarity_matrix(gates, gate_q_factor = None):
         else:
             gate_A = gates[i].get_tight_gates(gate_q_factor)
 
-        for j in range(len(gates)):
+        for jj, j in enumerate(columns):
             # if gates[i].sample_num != gates[j].sample_num:
             if i!=j:
                 if gate_q_factor is None:
@@ -38,8 +42,7 @@ def build_similarity_matrix(gates, gate_q_factor = None):
                     gate_B =  gates[j].get_tight_gates(gate_q_factor)
 
                 j_indx = jaccard(gate_A, gate_B)
-                gates[i].sample_num
-                Sim_Matrix[i,j] = j_indx
+                Sim_Matrix[i,jj] = j_indx
             # else:
             #     if i!=j:
             #         print('here')
@@ -128,6 +131,25 @@ def binary_overlap_constarint(variables, values):
         return True
 
 
+
+def compute_constraints(incidence_matrix):
+    '''
+
+    Computes constraints from an incidence matrix.
+
+    :param incidence_matrix :obj:`numpy.array`, an [m,m] weighted incidence matrix where m is the number of location groups in channel ch.
+    :returns:
+        - constraints - :obj:`list(tuple)`, a list of constraints. Each list element is a tuple([group 1, group2], function) such that the function is binary_overlap_constarint.
+
+    '''
+    groups_to_contstarint = np.argwhere(np.triu(incidence_matrix, k=1)) + 1
+
+    constraints = []
+    for gtc in groups_to_contstarint:
+        constraints+= [ (gtc.tolist(), binary_overlap_constarint) ]
+    return constraints
+
+
 def get_references(ch, data_handler):
 
     '''
@@ -143,7 +165,7 @@ def get_references(ch, data_handler):
     :returns:
       - result - :obj:`dict`, a dictionary of computed reference gate with location groups as keys.
       - incidence_matrix - :obj:`numpy.array`, an [m,m] weighted incidence matrix where m is the number of location groups in channel ch.
-      - loosened_constraints - :obj:`list`, a list of loosened constraints in the case of a deadlock, empty otherwise.
+      - loosened_groups - :obj:`list`, a list of loosened groups in the case of a deadlock, empty otherwise.
 
     '''
 
@@ -157,16 +179,12 @@ def get_references(ch, data_handler):
 
     # computing group incidence matrix
     incidence_matrix = data_handler.get_groups_graph_matrix_of_ch(ch)
-    print(incidence_matrix)
 
     # CSP ingredients
     variables = tuple(groups)
     domains = groups_gates
-    groups_to_contstarint = np.argwhere(np.triu(incidence_matrix, k=1)) + 1
-    constraints = []
-    for gtc in groups_to_contstarint:
-        print(gtc.tolist())
-        constraints+= [ (gtc.tolist(), binary_overlap_constarint) ]
+    constraints = compute_constraints(incidence_matrix)
+    incidence_matrix_cpy = copy.deepcopy(incidence_matrix)
 
 
     # my_problem = CspProblem(variables, domains, constraints)
@@ -185,53 +203,152 @@ def get_references(ch, data_handler):
     for r in  result.values():
         print((r.location_group, r.sample_num, int(r.group_ref_score*100)/100), r.gate)
 
-    print('constraints', [c[0] for c in constraints])
-    loosened_constraints = []
-
-    for i in range(len(constraints)):
-        print(f'iter {i}', [c[0] for c in constraints])
-        my_problem = CspProblem(variables, domains, constraints)
-        result = backtrack(my_problem,
-                            value_heuristic=LEAST_CONSTRAINING_VALUE,
-                           inference=True)
-
-        # Check if Deadlock and loosen the weakest constraint
-        # TODO: This should be all the constraints of an entire group not a single constraint
-        # TODO: flag gates from the group that has been ignored in order for the alignment module to treat it accordingly.
-
-        if result is None:
-            m = incidence_matrix[constraints[0][0][0]-1,constraints[0][0][1]-1]
-            jj = 0
-            for j, co in enumerate(constraints[1:]):
-                canv = incidence_matrix[co[0][0]-1,co[0][1]-1]
-                if canv <= m:
-                    m = canv
-                    jj = j+1
-            print(m, jj)
-            loosened_constraints+=[constraints[jj]]
-            constraints.__delitem__(jj)
-        else:
-            for v in result.values():
-                v.is_location_reference = True
-
-            return result, incidence_matrix, loosened_constraints
+    loosened_groups = []
 
 
-    print('No Constraints')
+    if len(constraints)<1:
+        print('No Constraints')
+    else:
+        for i in range(incidence_matrix_cpy.shape[0]):
+            print(f'\niter {i}', [c[0] for c in constraints])
+            print(incidence_matrix_cpy)
+            my_problem = CspProblem(variables, domains, constraints)
+            result = backtrack(my_problem,
+                                value_heuristic=LEAST_CONSTRAINING_VALUE,
+                               inference=True)
 
+            # Check if Deadlock and loosen the weakest constraint
+            # TODO: This should be all the constraints of an entire group not a single constraint
+            # TODO: flag gates from the group that has been ignored in order for the alignment module to treat it accordingly.
+
+            if result is None:
+                indx = np.argmin(incidence_matrix_cpy.sum(0))
+                incidence_matrix_cpy[indx,:] = 0
+                incidence_matrix_cpy[:,indx] = 0
+                constraints = compute_constraints(incidence_matrix_cpy)
+                loosened_groups += [indx+1]
+            else:
+                break
+
+    # Flag gates in result as references.
     for v in result.values():
         v.is_location_reference = True
 
+    # Flag gates in loosened groups to be handled by MARS.
+    for group in loosened_groups:
+        gates_in_loosened_group = data_handler.get_gates_in_group(ch,group)
+        for gate in gates_in_loosened_group:
+            gate.leave_to_MARS = True
 
-    return result, incidence_matrix, loosened_constraints
+    return result, incidence_matrix, loosened_groups
+
+
+def assign_location_and_morphology_groups_from_JM(JM, ref_gates, targ_gates,
+                                                  jaccard_threshold,
+                                                  wass_dist_threshold, wass_n_samples):
+    '''
+
+    Givrn a Jaccard Similarity Matrix between a list of reference and target gates, this method assigns location and morphology groups for target gates and flags the rest for MARS model.
+
+    :param JM: :obj:`numpy.array`, an [m,n] Jaccard similarity matrix for two samples where m is the number of reference gates and n is the number of target gates.
+    :param ref_gates: :obj:`list(Gate)`: a list of reference gates.
+    :param targ_gates: :obj:`list(Gate)` a list of target gates.
+    :param jaccard_thresholds: :obj:`float`, Jaccard threshold indicating the minimum allowable Jaccard overlapping.
+    :param wass_dist_threshold: obj:`float`.
+    :param wass_n_samples: :obj:`int`, number of samples for computing wasserstien distance
+    '''
+
+    ll = len(targ_gates)
+    leave_to_MARS_flags = [True]*ll
+
+    for i in range(np.min(JM.shape)):
+        # get most overlapping gate
+        max_indx = JM.argmax()
+        r, c = max_indx // JM.shape[1], max_indx % JM.shape[1]
+        max_value = JM[r, c]
+        if max_value >= jaccard_threshold:
+
+            leave_to_MARS_flags[r] = False
+
+            # Location
+            targ_gates[r].location_group = c + 1
+            JM[r, :], JM[:, c] = -1, -1
+
+
+            # morphology
+            z1 = ref_gates[c].segment
+            z2 = targ_gates[r].segment
+            ind1 = np.random.randint(0, z1.shape[0], np.minimum(wass_n_samples, z1.shape[0]))
+            ind2 = np.random.randint(0, z2.shape[0], np.minimum(wass_n_samples, z2.shape[0]))
+
+            wd = morphology_distance(z1[ind1], z2[ind2])
+            if wd <= wass_dist_threshold:
+                targ_gates[r].morphology_group = 1
+        else:
+
+            # even if the current maximum is higher than the threshold!
+            break
+    # flag the gates which do not have any references
+    for i, flag in enumerate(leave_to_MARS_flags):
+        targ_gates[i].leave_to_MARS = flag
+
+
+def set_references_manually(channels, ref_samples,
+                            data_handler, jaccard_thresholds,
+                            wass_dist_thresholds,
+                            Loc_Ref_Dict_All_Ch, Loc_Morph_Ref_Dict_All_Ch, wass_n_samples=2000
+                            ):
+    '''
+
+    :param channels: :obj:`list(int)`, a list of channels to update.
+    :param ref_samples: Union(:obj:`int`, :obj:`list`), number/s of reference sample/s for each channel.
+    :param data_handler: :obj:`Datahandler`, a Datahandler object that facilitates certain quires on current data state.
+    :param jaccard_thresholds: :obj:`dict`, a dictionary of Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.
+    :param wass_dist_threshold: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.
+    :param Loc_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen reference gates for all channels with channels numbers as its keys.
+    :param Loc_Morph_Ref_Dict_All_Ch: :obj:`dict`, a dictionary of :obj:`Gate` chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.
+    :param wass_n_samples:
+    '''
+
+    # check input
+    jaccard_thresholds = [jaccard_thresholds] * len(channels) if isinstance(jaccard_thresholds,
+                                                                            float) else jaccard_thresholds
+    wass_dist_thresholds = [wass_dist_thresholds] * len(channels) if isinstance(wass_dist_thresholds,
+                                                                                float) else wass_dist_thresholds
+    ref_samples = [ref_samples] * len(channels) if isinstance(ref_samples, int) else ref_samples
+
+    for ind, ch in enumerate(channels):
+
+        ref_sample = ref_samples[ind]
+        ref_gates = data_handler.samples[ref_sample].gates[ch]
+        jaccard_threshold, wass_dist_threshold = jaccard_thresholds[ind], wass_dist_thresholds[ind]
+
+        gates_indx_dict = data_handler.get_gates_of_channel_dictionary_indexed_by_sample_num(ch)
+        # build partial similarity matrix
+        p_sim_matrix = build_similarity_matrix(data_handler.get_gates_of_channel(ch),
+                                               partial_columns=gates_indx_dict[ref_sample])
+
+        # assign location and morphology groups for every gate
+        for samp_num, target_gates_indx in gates_indx_dict.items():
+            print(samp_num, target_gates_indx)
+            JM = p_sim_matrix[target_gates_indx, :]
+            targ_gates = data_handler.samples[samp_num].gates[ch]
+            assign_location_and_morphology_groups_from_JM(JM, ref_gates, targ_gates, jaccard_threshold,
+                                                          wass_dist_threshold, wass_n_samples)
+
+        # fill reference dictionaries
+        Loc_Ref_Dict_All_Ch[ch] = {ref.location_group: ref for ref in ref_gates}
+        Ref_Dict_indx_by_Loc_and_Morph = {}
+        for group, ref in Loc_Ref_Dict_All_Ch[ch].items():
+            ref.is_location_reference = True
+            Ref_Dict_indx_by_Loc_and_Morph[group, 1] = ref
+
+        Loc_Morph_Ref_Dict_All_Ch[ch] = Ref_Dict_indx_by_Loc_and_Morph
 
 
 def recompute_and_update_location_hierarchy_and_refs(channels, data_handler, jaccard_thresholds,
-                                    Sim_Matrix_dict, agg_models_dict,
-                                    location_groups_dict,
-                                    Loc_Ref_Dict_All_Ch,
-                                       incidence_matrices,
-                                       loosened_groups_for_deadlock_dict):
+                                    Sim_Matrix_dict, agg_models_dict, location_groups_dict, Loc_Ref_Dict_All_Ch,
+                                                     incidence_matrices, loosened_groups_for_deadlock_dict):
 
     '''
 

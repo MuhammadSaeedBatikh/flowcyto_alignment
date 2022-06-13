@@ -1,10 +1,10 @@
 from sklearn.preprocessing import MinMaxScaler
-import src.cyto.segmentation
-from src.cyto.segmentation import *
-from src.cyto.grouping import *
-from src.cyto.alignment import *
+import segmentation
+from segmentation import *
+from grouping import *
+from alignment import *
 from importlib import reload
-reload(src.cyto.segmentation)
+reload(segmentation)
 
 import time
 
@@ -112,6 +112,7 @@ class Pipeline:
         self.gates_locations_dict = {}
         self.funcs_dict = {}
         self.comp_func_dict = {}
+        self.Ref_Inv_CDF_Dict_All_Ch = {}
         self.earth_models_dict = {}
         self.sigmas = np.ones(self.num_channels) * sigma if isinstance(sigma, float) else sigma
         self.earth_smoothing_penalty = np.ones(self.num_channels) * earth_smoothing_penalty if isinstance(earth_smoothing_penalty, float) else earth_smoothing_penalty
@@ -192,6 +193,23 @@ class Pipeline:
                            depth_threshold=depth_threshold,
                            init=init, verbose= verbose)
 
+    def compute_location_morphology_groups_from_manual_refs(self, channels, ref_samples, jaccard_thresholds, wass_dist_thresholds):
+
+        '''
+
+        :param channels: :obj:`list(int)`, a list of channels to update.
+        :param ref_samples: Union(:obj:`int`, :obj:`list`), number/s of reference sample/s for each channel.
+        :param jaccard_thresholds: :obj:`dict`, a dictionary of Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.
+        :param wass_dist_threshold: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.
+        '''
+
+        set_references_manually(channels, ref_samples,
+                                data_handler=self.data_handler, jaccard_thresholds=jaccard_thresholds,
+                                wass_dist_thresholds=wass_dist_thresholds,
+                                Loc_Ref_Dict_All_Ch = self.Loc_Ref_Dict_All_Ch,
+                                Loc_Morph_Ref_Dict_All_Ch= self.Loc_Morph_Ref_Dict_All_Ch, wass_n_samples=2000
+                                )
+
     def recompute_and_update_location_hierarchy_and_refs(self, channels, jaccard_thresholds):
 
         '''
@@ -200,7 +218,8 @@ class Pipeline:
          Location References Dictionary, Incidence Matrcies Dictionary, Loosened Groups For Deadlock Dictionary.
 
         :param channels: :obj:`list(int)`, a list of channels to update.
-        :param jaccard_thresholds: :obj:`dict`, a dictionary of Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.
+        :param jaccard_thresholds: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.
+
         '''
 
         for i, ch in enumerate(channels):
@@ -262,7 +281,7 @@ class Pipeline:
             align_samples_func(ch=ch, q_alignment = self.gate_factor_q[ch],
                                samples=self.samples, aligned_samples=self.aligned_samples,
                                original_samples=self.original_samples,
-                               Loc_Ref_Dict_All_Ch=self.Loc_Ref_Dict_All_Ch,
+                               Loc_Ref_Dict_All_Ch=self.Loc_Ref_Dict_All_Ch,Ref_Inv_CDF_Dict_All_Ch=self.Ref_Inv_CDF_Dict_All_Ch,
                                Loc_Morph_Ref_Dict_All_Ch=self.Loc_Morph_Ref_Dict_All_Ch,
                                funcs_dict=self.funcs_dict, comp_func_dict=self.comp_func_dict,
                                gates_locations_dict=self.gates_locations_dict,
@@ -291,7 +310,7 @@ class Pipeline:
             return hyperparam
 
     def end_to_end_align(self, channels, area_thresholds=None, width_thresholds =None,
-                                depth_thresholds=None, kde_windows=None, jaccard_thresholds =None, wass_dist_thresholds = None,
+                                depth_thresholds=None, kde_windows=None, jaccard_thresholds =None, wass_dist_thresholds = None, ref_samples_manual=None,
                          sigma=1, earth_smoothing_penalty=2, n_sample=-1, subsample_ratio=1, verbose = True
                          ):
 
@@ -307,6 +326,7 @@ class Pipeline:
         :param kde_window: :obj:`float`, shape = [ch, 1], A 1-D array containing Kernel Density Estimate window size for each channel. This determines how coarse or granular the estimated pdf is.
         :param jaccard_thresholds: :obj:`dict`, a dictionary of Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.
         :param wass_dist_threshold: :obj:`numpy.array(dtype=float)`, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.
+        :param ref_samples_manual: :obj:`int` or :obj:`list(int)`, a list of manual references numbers for each channel. (default = :obj:`None`) implies find references automatically.
         :param sigma: :obj:`float`, the standard deviation of Gaussian kernel.
         :param earth_smoothing_penalty: :obj:`float`, A smoothing parameter used to calculate generalized cross validation. Used during the pruning pass and to determine whether to add a hinge or linear basis function during the forward pass.
         :param n_sample: :obj:`int`, number of samples to align, (default = -1), align all samples.
@@ -333,14 +353,17 @@ class Pipeline:
                                    )
         self.commit_changes(verbose)
 
-        print('\n', '=='*10,' Update Location Hierarchy and References','=='*10,'\n')
+        if ref_samples_manual is None:
+            print('\n', '==' * 10, ' Update Location Hierarchy and References', '==' * 10, '\n')
+            self.recompute_and_update_location_hierarchy_and_refs(channels, jaccard_thresholds)
 
-        self.recompute_and_update_location_hierarchy_and_refs(channels, jaccard_thresholds)
+            self.commit_changes(verbose)
+            print('\n', '=='*10,' Update Morphology Hierarchy and Morphology References','=='*10,'\n')
 
-        self.commit_changes(verbose)
-        print('\n', '=='*10,' Update Morphology Hierarchy and Morphology References','=='*10,'\n')
+            self.update_morphology_hierarchy_and_refs(channels, wass_dist_thresholds)
+        else:
+            self.compute_location_morphology_groups_from_manual_refs(channels, ref_samples_manual, jaccard_thresholds, wass_dist_thresholds)
 
-        self.update_morphology_hierarchy_and_refs(channels, wass_dist_thresholds)
         self.commit_changes(verbose)
 
         print('\n', '=='*10,' Align Samples','=='*10,'\n')
@@ -408,7 +431,10 @@ class DataHandler:
 
 
         self.channels_gates = {}
+        self.channels_gates_indexed_by_sample_num = {}
         self.channels_groups = {}
+        self.samples = samples
+
         for ch in range(samples[0].num_ch):
             overall_gate_indx = 0
             for s, sample in enumerate(samples):
@@ -425,6 +451,7 @@ class DataHandler:
                 overall_gate_indx += num_gates
             if verbose:
                 print(self.channels_gates)
+            self.channels_gates_indexed_by_sample_num[ch] = self.index_gates_by_sample_number(ch)
 
     def get_gates_of_channel(self, ch):
 
@@ -439,6 +466,43 @@ class DataHandler:
         '''
 
         return self.channels_gates[ch]
+
+    def get_gates_of_channel_dictionary_indexed_by_sample_num(self, ch):
+
+        '''
+
+        Gets all gates in channel ch indexed by sample number
+
+        :param ch: :obj:`int`, number of channels.
+        :returns:
+         - :obj:`dict`, a dictionary of gates in channel ch indexed by sample number.
+
+        '''
+
+        return self.channels_gates_indexed_by_sample_num[ch]
+
+    def index_gates_by_sample_number(self, ch):
+
+        '''
+
+        Indexes all gates in channel ch by sample number
+
+        :param ch: :obj:`int`, number of channels.
+        :returns:
+         - :obj:`dict`, a dictionary of gates in channel ch indexed by sample number.
+
+        '''
+
+        gates_obj_arr = self.get_gates_of_channel(ch)
+
+        gates_indx_dict = {}
+        for i, g in enumerate(gates_obj_arr):
+            samp_num = g.sample_num
+            if gates_indx_dict.get(samp_num):
+                gates_indx_dict[samp_num] += [i]
+            else:
+                gates_indx_dict[samp_num] = [i]
+        return gates_indx_dict
 
     def get_groups_in_channel(self, ch, precomputed=False):
 

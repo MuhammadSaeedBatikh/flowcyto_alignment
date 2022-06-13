@@ -64,6 +64,24 @@
   <div class="section" id="module-src.cyto.grouping">
 <span id="grouping-module"></span><h1>grouping module<a class="headerlink" href="#module-src.cyto.grouping" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
+<dt id="src.cyto.grouping.assign_location_and_morphology_groups_from_JM">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">assign_location_and_morphology_groups_from_JM</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">JM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_gates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targ_gates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jaccard_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wass_dist_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wass_n_samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#assign_location_and_morphology_groups_from_JM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.assign_location_and_morphology_groups_from_JM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Givrn a Jaccard Similarity Matrix between a list of reference and target gates, this method assigns location and morphology groups for target gates and flags the rest for MARS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>JM</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code>, an [m,n] Jaccard similarity matrix for two samples where m is the number of reference gates and n is the number of target gates.</p></li>
+<li><p><strong>ref_gates</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(Gate)</span></code>: a list of reference gates.</p></li>
+<li><p><strong>targ_gates</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(Gate)</span></code> a list of target gates.</p></li>
+<li><p><strong>jaccard_thresholds</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, Jaccard threshold indicating the minimum allowable Jaccard overlapping.</p></li>
+<li><p><strong>wass_dist_threshold</strong> – obj:<cite>float</cite>.</p></li>
+<li><p><strong>wass_n_samples</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, number of samples for computing wasserstien distance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="src.cyto.grouping.binary_overlap_constarint">
 <code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">binary_overlap_constarint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#binary_overlap_constarint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.binary_overlap_constarint" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether a pair of potential references overlap or not.</p>
@@ -99,14 +117,15 @@
 
 <dl class="py function">
 <dt id="src.cyto.grouping.build_similarity_matrix">
-<code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">build_similarity_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate_q_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#build_similarity_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.build_similarity_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">build_similarity_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate_q_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partial_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#build_similarity_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.build_similarity_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes a matrix of Jaccard similarity indices between gates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>gates</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(Gate)</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">len(gates)</span> <span class="pre">=</span> <span class="pre">m</span></code> where m is the number of gates.</p></li>
-<li><p><strong>gate_q_factor</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, tightening the gates using quantiles
-if <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>: uses the original tight_gate in the gate object
+<li><p><strong>gate_q_factor</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, tightening the gates using quantiles</p></li>
+<li><p><strong>partial_columns</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, a list of gates indices to compute Jaccard similarity for across all other gates such that the result is a numpy.array`, <code class="xref py py-obj docutils literal notranslate"><span class="pre">shape</span> <span class="pre">=</span> <span class="pre">[m,</span> <span class="pre">len(partial_columns)].(default</span> <span class="pre">=</span> <span class="pre">-1),</span> <span class="pre">creates</span> <span class="pre">square</span> <span class="pre">matrix</span> <span class="pre">and</span> <span class="pre">compares</span> <span class="pre">all</span> <span class="pre">gates.</span>
+<span class="pre">if</span> <span class="pre">:obj:`None</span></code>: uses the original tight_gate in the gate object
 if <code class="xref py py-obj docutils literal notranslate"><span class="pre">-1</span></code>: uses open-ended gates
 else: tightens the gates with the provided quantile value (slow).</p></li>
 </ul>
@@ -115,6 +134,19 @@ else: tightens the gates with the provided quantile value (slow).</p></li>
 <dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">shape</span> <span class="pre">=</span> <span class="pre">[m,</span> <span class="pre">m]</span></code> A similarity matrix with Jaccard indices as entries.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.grouping.compute_constraints">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">compute_constraints</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incidence_matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#compute_constraints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.compute_constraints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes constraints from an incidence matrix.</p>
+<p>:param incidence_matrix <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code>, an [m,m] weighted incidence matrix where m is the number of location groups in channel ch.
+:returns:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>constraints - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(tuple)</span></code>, a list of constraints. Each list element is a tuple([group 1, group2], function) such that the function is binary_overlap_constarint.</p></li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py function">
@@ -136,7 +168,7 @@ Least-Constraining-Value heuristics. Finally, it checks whether a deadlock has o
 <dd class="field-even"><p><ul class="simple">
 <li><p>result - <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of computed reference gate with location groups as keys.</p></li>
 <li><p>incidence_matrix - <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code>, an [m,m] weighted incidence matrix where m is the number of location groups in channel ch.</p></li>
-<li><p>loosened_constraints - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, a list of loosened constraints in the case of a deadlock, empty otherwise.</p></li>
+<li><p>loosened_groups - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, a list of loosened groups in the case of a deadlock, empty otherwise.</p></li>
 </ul>
 </p>
 </dd>
@@ -182,6 +214,25 @@ Location References Dictionary, Incidence Matrcies Dictionary, Loosened Groups F
 <li><p><strong>Loc_Ref_Dict_All_Ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Gate</span></code> chosen reference gates for all channels with channels numbers as its keys.</p></li>
 <li><p><strong>incidence_matrices</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of  [m,m] <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code> incidence matrices with channels numbers as its keys where m is the number of groups.</p></li>
 <li><p><strong>loosened_groups_for_deadlock_dict</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of constraints that have been loosened because of a deadlock with channels numbers as its keys.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.grouping.set_references_manually">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.grouping.</span></code><code class="sig-name descname"><span class="pre">set_references_manually</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_handler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jaccard_thresholds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wass_dist_thresholds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Loc_Ref_Dict_All_Ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Loc_Morph_Ref_Dict_All_Ch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wass_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/grouping.html#set_references_manually"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.grouping.set_references_manually" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(int)</span></code>, a list of channels to update.</p></li>
+<li><p><strong>ref_samples</strong> – Union(<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>), number/s of reference sample/s for each channel.</p></li>
+<li><p><strong>data_handler</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">Datahandler</span></code>, a Datahandler object that facilitates certain quires on current data state.</p></li>
+<li><p><strong>jaccard_thresholds</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of Jaccard thresholds indicating where to cut the dendrogram with channels numbers as its keys.</p></li>
+<li><p><strong>wass_dist_threshold</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(dtype=float)</span></code>, shape = [ch, 1], A 1-D array containing wasserstien distance thresholds for each channel.</p></li>
+<li><p><strong>Loc_Ref_Dict_All_Ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Gate</span></code> chosen reference gates for all channels with channels numbers as its keys.</p></li>
+<li><p><strong>Loc_Morph_Ref_Dict_All_Ch</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, a dictionary of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Gate</span></code> chosen morphology reference gates for all channels with (channel number, location group) tupel as its keys.</p></li>
+<li><p><strong>wass_n_samples</strong> – </p></li>
 </ul>
 </dd>
 </dl>

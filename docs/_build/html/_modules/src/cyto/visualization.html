@@ -100,7 +100,7 @@
 
 
 <div class="viewcode-block" id="plot_original_vs_aligned"><a class="viewcode-back" href="../../../visualization.html#src.cyto.visualization.plot_original_vs_aligned">[docs]</a><span class="k">def</span> <span class="nf">plot_original_vs_aligned</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span><span class="n">samples</span><span class="p">,</span> <span class="n">aligned_samples</span><span class="p">,</span>
-                             <span class="n">n_sample</span><span class="p">,</span> <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">,</span> <span class="n">columns_names</span><span class="p">,</span>
+                            <span class="n">Loc_Ref_Dict_All_Ch</span><span class="p">,</span> <span class="n">columns_names</span><span class="p">,</span><span class="n">n_sample</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
                              <span class="n">max_per_plt</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">root_path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xlim0</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">xlim1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,):</span>
 
 
@@ -119,10 +119,10 @@
 <span class="sd">    :return:</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
+    <span class="n">n_sample</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="k">if</span> <span class="n">n_sample</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="n">n_sample</span>
     <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">part</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sample</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span><span class="o">%</span><span class="n">max_per_plt</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
