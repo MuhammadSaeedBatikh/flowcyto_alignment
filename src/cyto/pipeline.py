@@ -261,7 +261,7 @@ class Pipeline:
                                              Morph_groups_All_ch=self.Morph_groups_All_ch
                                              )
 
-    def align_samples(self, channels, sigma =1,  earth_smoothing_penalty=2, n_sample =-1, subsample_ratio=1, verbose= False):
+    def align_samples(self, channels, sigma =1,  earth_smoothing_penalty=2, n_sample =-1, subsample_ratio=1, in_place_eval=True, verbose= False):
 
         '''
 
@@ -272,6 +272,7 @@ class Pipeline:
         :param earth_smoothing_penalty: :obj:`float`, A smoothing parameter used to calculate generalized cross validation. Used during the pruning pass and to determine whether to add a hinge or linear basis function during the forward pass.
         :param n_sample: :obj:`int`, number of samples to align, (default = -1), align all samples.
         :param subsample_ratio: :obj:`float`, a number between [0,1]`, represents the ratio of cells to consider to estimate MARS parameters.
+        :param in_place_eval: :obj:`Bool`, if :obj:`True`, aligns data within.
         :param verbose: :obj:`Bool`, if :obj:`True`, prints all information about all gates in each channel for every sample.
         '''
 
@@ -288,6 +289,7 @@ class Pipeline:
                                earth_models_dict=self.earth_models_dict,
                                n_sample = n_sample, sigma=sigma,
                                earth_smoothing_penalty=earth_smoothing_penalty,
+                               in_place_eval = in_place_eval,
                                subsample_ratio = subsample_ratio,
                                verbose = verbose)
 
@@ -311,7 +313,7 @@ class Pipeline:
 
     def end_to_end_align(self, channels, area_thresholds=None, width_thresholds =None,
                                 depth_thresholds=None, kde_windows=None, jaccard_thresholds =None, wass_dist_thresholds = None, ref_samples_manual=None,
-                         sigma=1, earth_smoothing_penalty=2, n_sample=-1, subsample_ratio=1, verbose = True
+                         sigma=1, earth_smoothing_penalty=2, n_sample=-1, subsample_ratio=1, in_place_eval=True, verbose = True
                          ):
 
 
@@ -330,6 +332,7 @@ class Pipeline:
         :param sigma: :obj:`float`, the standard deviation of Gaussian kernel.
         :param earth_smoothing_penalty: :obj:`float`, A smoothing parameter used to calculate generalized cross validation. Used during the pruning pass and to determine whether to add a hinge or linear basis function during the forward pass.
         :param n_sample: :obj:`int`, number of samples to align, (default = -1), align all samples.
+        :param in_place_eval: :obj:`Bool`, if :obj:`True`, aligns data within.
         :param subsample_ratio: :obj:`float`, a number between [0,1]`, represents the ratio of cells to consider to estimate MARS parameters.
         :param verbose: :obj:`Bool`, if :obj:`True`, prints all information about all gates in each channel for every sample.
         '''
@@ -369,7 +372,7 @@ class Pipeline:
         print('\n', '=='*10,' Align Samples','=='*10,'\n')
 
         self.align_samples(channels, sigma=sigma, earth_smoothing_penalty=earth_smoothing_penalty,
-                           n_sample=n_sample, subsample_ratio=subsample_ratio, verbose=verbose)
+                           n_sample=n_sample, subsample_ratio=subsample_ratio,in_place_eval=in_place_eval, verbose=verbose)
         self.commit_changes(verbose)
 
 
