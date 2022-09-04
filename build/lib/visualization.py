@@ -39,7 +39,7 @@ def plot_gates_dendrogram(agg_model, ch, jacc_threshold,  column_name='', save=F
 
 
 def plot_original_vs_aligned(channels,samples, aligned_samples,
-                             n_sample, Loc_Ref_Dict_All_Ch, columns_names,
+                            Loc_Ref_Dict_All_Ch, columns_names,n_sample = -1,
                              max_per_plt=15, root_path = None, xlim0=0, xlim1 = 1,):
 
 
@@ -58,10 +58,10 @@ def plot_original_vs_aligned(channels,samples, aligned_samples,
     :return:
     '''
 
+    n_sample = len(samples) if n_sample == -1 else n_sample
     for ch in channels:
         fig = None
         part = -1
-
         for i in range(n_sample):
             if i%max_per_plt==0:
                 if fig is not None and root_path is not None:

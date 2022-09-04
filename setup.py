@@ -20,7 +20,8 @@ setup(name='cyto_align',
           'networkx',
           'jenkspy',
           'sklearn-contrib-py-earth',
-          'simpleai'
+          'simpleai',
+          'flowio'
         ]
      )
 

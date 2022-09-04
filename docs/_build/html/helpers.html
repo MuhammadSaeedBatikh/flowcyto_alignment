@@ -87,7 +87,7 @@ For example A=[0.25,0.5], B=[0.3,0.75], jaccard(A, B) returns (0.5-0.3)/(0.75-0.
 <dl class="py function">
 <dt id="src.cyto.helpers.load_data">
 <code class="sig-prename descclassname"><span class="pre">src.cyto.helpers.</span></code><code class="sig-name descname"><span class="pre">load_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_code_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample_code'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">','</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/helpers.html#load_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.helpers.load_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>loads data from disk.</p>
+<dd><p>Loads csv data file from disk. First row of file (header) indicates markers. First cell of first row indicates sample code.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -97,9 +97,34 @@ For example A=[0.25,0.5], B=[0.3,0.75], jaccard(A, B) returns (0.5-0.3)/(0.75-0.
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
+<dd class="field-even"><p><ul class="simple">
+<li><p>X - <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(float)</span></code>, an n*m cells matrix where n is the number of cells, and m number of markers. (not including cells codes/labels )</p></li>
+<li><p>Y - <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(int)</span></code>, an n*1 integer labels array indicating sample number of each cell, where n is the number of cells.</p></li>
+<li><p>columns_names - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(str)</span></code>, columns names (header) including cells codes/labels.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="src.cyto.helpers.load_data_from_a_list_of_matrices">
+<code class="sig-prename descclassname"><span class="pre">src.cyto.helpers.</span></code><code class="sig-name descname"><span class="pre">load_data_from_a_list_of_matrices</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/src/cyto/helpers.html#load_data_from_a_list_of_matrices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.cyto.helpers.load_data_from_a_list_of_matrices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads data from a list of samples. Each sample is an m*n matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>samples_list</strong> – <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, list of matrices.</p>
+</dd>
+</dl>
+<p>:param columns_names <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(str)</span></code>, columns names (header) including cells codes/labels.
+:returns:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>X - <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(float)</span></code>, an n*m cells matrix where n is the number of cells, and m number of markers. (not including cells codes/labels )</p></li>
+<li><p>Y - <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array(int)</span></code>, an n*1 integer labels array indicating sample number of each cell, where n is the number of cells.</p></li>
+<li><p>columns_names - <code class="xref py py-obj docutils literal notranslate"><span class="pre">list(str)</span></code>, columns names (header) including cells codes/labels.</p></li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py function">

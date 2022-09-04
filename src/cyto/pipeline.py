@@ -5,7 +5,8 @@ from grouping import *
 from alignment import *
 from importlib import reload
 reload(segmentation)
-
+import os
+import flowio
 import time
 
 class Pipeline:
@@ -58,11 +59,12 @@ class Pipeline:
                             gate_factor_q=.02, area_thresholds=.04,
                             kde_window=.28, width_thresholds=.16,
                             depth_thresholds=.23, jaccard_thresholds=.6, wass_dist_threshold = 1e-9,
-                 sigma=1, earth_smoothing_penalty=2, segment_data= False
-
+                 sigma=1, earth_smoothing_penalty=2, segment_data= False, files_names= None, first_column_in_channel_names_sample_code = False,
                  ):
-        # preprocessing and organizing
 
+        self.files_names = files_names
+
+        # preprocessing and organizing
         self.max_before_norm, self.min_before_norm = X_data.max(0), X_data.min(0)
         self.feature_range = feature_range
         self.X = MinMaxScaler(feature_range=feature_range).fit_transform(X_data)
@@ -72,7 +74,12 @@ class Pipeline:
 
         self.num_channels = num_channels
         self.num_samples = len(np.unique(Y))
-        self.channel_names = channel_names if channel_names is not None else list(range(num_channels))
+        self.first_column_in_channel_names_sample_code = first_column_in_channel_names_sample_code
+
+        if first_column_in_channel_names_sample_code:
+            self.channel_names = channel_names
+        else:
+            self.channel_names = channel_names if channel_names is not None else list(range(num_channels))
 
         # Samples container
 
@@ -376,36 +383,78 @@ class Pipeline:
         self.commit_changes(verbose)
 
 
-    def clean_and_export(self, path):
+
+    def clean_and_export(self, path, format='csv',
+                         only_aligned_channels=True,
+                         clean=True):
 
         '''
-
          Removes any Nan values, transforms data to the original input format and exports it to CSV file.
 
         :param path: :obj:`Str`, output path, including the csv file name.
         '''
-        aligned_samples_data = []
-        original_samples_data = []
-        for s in range(self.num_samples):
-            sample = []
-            orig_sample = []
-            for ch in range(self.num_channels):
-                samp_ch = self.aligned_samples.reshape(-1, 1)
-                sample +=[samp_ch]
-            sample = np.concatenate(sample, axis=1 )
-            y = np.zeros([sample.shape[0],1], dtype=np.int)+s
-            sample = np.concatenate([y, sample], axis = 1)
-            orig_sample = np.concatenate(orig_sample, axis=1 )
-            orig_sample = np.concatenate([y, orig_sample], axis = 1)
-            aligned_samples_data += [sample]
-            original_samples_data += [orig_sample]
 
-        aligned_samples_data = np.concatenate(aligned_samples_data)
-        cleaned_and_aligned = aligned_samples_data[~np.isnan(aligned_samples_data).any(axis=1)]
-        header = ','.join(self.channel_names)
-        np.savetxt(path,cleaned_and_aligned,delimiter=',',header=header,
-                   fmt=','.join(['%i'] + ['%1.4f']*self.num_channels), comments='')
-        return cleaned_and_aligned
+        os.makedirs(path, exist_ok=True)
+
+        keys = list(self.aligned_samples.keys())
+        aligned_samples_numbers = [k[0] for k in keys]
+        aligned_samples_numbers = np.sort(np.unique(aligned_samples_numbers))
+
+        for s in aligned_samples_numbers:
+            samp_channels = []
+
+            for k in keys:
+                if k[0] == s:
+                    samp_channels += [k[1]]
+
+            sample = []
+
+            for ch in range(self.num_channels):
+                if ch in samp_channels:
+                    samp_ch = self.aligned_samples[s, ch].reshape(-1, 1)
+                    sample += [samp_ch]
+                else:
+                    if not only_aligned_channels:
+                        samp_ch = self.samples[s](ch).reshape(-1, 1)
+                        sample += [samp_ch]
+
+            sample = np.concatenate(sample, axis=1)
+
+            if clean:
+                cleaned_and_aligned = sample[~np.isnan(sample).any(axis=1)]
+            else:
+                cleaned_and_aligned = sample
+
+
+            shift_idx = 1 if self.first_column_in_channel_names_sample_code else 0
+
+            if only_aligned_channels:
+                samp_channels = (np.array(samp_channels) + shift_idx).tolist()
+            else:
+                samp_channels = (np.arange(self.num_channels) + shift_idx).tolist()
+
+            header = [self.channel_names[h] for h in samp_channels]
+
+            if self.files_names is not None:
+                file = self.files_names[s]
+            else:
+                file = f'aligned_sample_{s}.{format}'
+
+            file = os.path.join(path, file)
+
+            print(file)
+            print(header)
+            if format.lower() == 'csv':
+                header = ','.join(header)
+                np.savetxt(file, cleaned_and_aligned, delimiter=',', header=header,
+                           fmt=','.join(['%i'] + ['%1.4f'] * self.num_channels), comments='')
+
+            elif format.lower() == 'fcs':
+                fh = open(file, 'wb')
+                flowio.create_fcs(fh, cleaned_and_aligned.flatten(), channel_names=header)
+                fh.close()
+            else:
+                raise ValueError(f'No support for format: {format}')
 
     def commit_changes(self, verbose=False):
 

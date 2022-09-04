@@ -341,10 +341,11 @@ def estimate_alignment_funcs_for_target(ch, target_sample, q_alignment, Loc_Ref_
             print('loc. gate is alredy ref?', ref_gate == target_gate)
             print('gate:\n', target_gate.gate)
         sample_orignal[ind] = z[ind]
-        t = np.linspace(target_gate.tight_gate[0], target_gate.tight_gate[1], 2000)
-        y = funcf(t)
-        ind = ~np.isnan(y)
-        xys += [[t[ind], y[ind]]]
+        if not target_gate.leave_to_MARS:
+            t = np.linspace(target_gate.tight_gate[0], target_gate.tight_gate[1], 2000)
+            y = funcf(t)
+            ind = ~np.isnan(y)
+            xys += [[t[ind], y[ind]]]
         gates_locations += [[target_gate.gate[0], target_gate.gate[1]]]
 
     return funcs, xys, gates_locations, sample_orignal
@@ -422,5 +423,6 @@ def align_samples_func(ch, q_alignment,
             aligned_samples[targ_num, ch] = sample_aligned
             original_samples[targ_num, ch] = sample_orignal
 
-        return comp_func_dict, funcs_dict, earth_models_dict
+    return comp_func_dict, funcs_dict, earth_models_dict
+
 
