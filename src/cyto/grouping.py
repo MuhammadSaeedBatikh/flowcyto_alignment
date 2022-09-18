@@ -79,6 +79,15 @@ def build_distance_matrix(gates, n_samples = 1000):
                 distance_matrix[i,j] = dist
     return distance_matrix
 
+def assign_groups_to_gates(gates, groups, on_location):
+
+    for i, gate in enumerate(gates):
+        if on_location:
+            gate.location_group = groups[i]
+        else:
+            gate.morphology_group = groups[i]
+
+
 def group_gates(gates, dist_matrix, threshold, on_location= True):
 
     '''
@@ -102,11 +111,9 @@ def group_gates(gates, dist_matrix, threshold, on_location= True):
                         distance_threshold = threshold,
                         linkage='single').fit(dist_matrix)
     groups = agg_model.labels_ +1
-    for i, gate in enumerate(gates):
-        if on_location:
-            gate.location_group = groups[i]
-        else:
-            gate.morphology_group = groups[i]
+
+    assign_groups_to_gates(gates, groups, on_location)
+
 
     return agg_model, np.array(groups)
 
@@ -370,7 +377,18 @@ def recompute_and_update_location_hierarchy_and_refs(channels, data_handler, jac
         print('ch',ch)
         gates_obj_arr = data_handler.get_gates_of_channel(ch)
         Sim_Matrix = build_similarity_matrix(gates_obj_arr)
-        agg_model, location_groups =  group_gates(gates_obj_arr, 1-Sim_Matrix, 1-jaccard_thresholds[ch] )
+        agg_model, location_groups =  group_gates(gates_obj_arr, 1-Sim_Matrix, 1-jaccard_thresholds[ch], on_location=True)
+
+
+        # check if two gates in the same sample have been merged
+        gates_indx_dict = data_handler.index_gates_by_sample_number(ch)
+        for key, value in gates_indx_dict.items():
+            loc_list = location_groups[value]
+            if len(loc_list) != len(set(loc_list)):
+                # rollback assignment
+                assign_groups_to_gates(gates_obj_arr, np.zeros(len(gates_obj_arr)), on_location= True)
+                raise Exception(f'Jaccard threshold {jaccard_thresholds[ch]: .4f}  made gates in sample {key} share the same location group.')
+
 
         Sim_Matrix_dict[ch] = Sim_Matrix
         agg_models_dict[ch] = agg_model

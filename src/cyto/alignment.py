@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 import copy
 import statsmodels.api as sm
 import scipy
-from pyearth import Earth
+# from pyearth import Earth
+from sklearn.model_selection import GridSearchCV
+from sklearn.kernel_ridge import KernelRidge
+
 
 def minmaxmean_align(x,y, mi, mx, q_alignment, func0 = None):
 
@@ -259,7 +262,12 @@ def combine_funcs(model, xs_ys, funcs, locations, sigma, subsample_ratio=1, plot
     xcom = np.concatenate(xcom)
     ycom = np.concatenate(ycom)
     # middle
-    model.fit(xcom, ycom)
+    #Must subsample for  for Kernel Ridge CV
+    # Must subsample for  for Kernel Ridge CV
+    m = xcom.shape[0]
+    indx = np.random.randint(0, m, np.minimum(m, 1000))
+    model.fit(xcom[indx].reshape(-1, 1), ycom[indx])
+
     comb_func = lambda x: combined(x, model, funcs, locations, sigma)
     if plot:
             t = np.linspace(-.1,1.1,5000)
@@ -411,7 +419,12 @@ def align_samples_func(ch, q_alignment,
                                                                        Ref_Dict_indx_by_Loc_and_Morph=Ref_Dict_indx_by_Loc_and_Morph,
                                                                        Ref_CDF_and_InvCDF=Ref_CDF_and_InvCDF, verbose= verbose )
 
-        model = Earth(penalty=earth_smoothing_penalty, smooth=True, max_degree=1, )
+        model = GridSearchCV(
+            KernelRidge(kernel="rbf", gamma=0.1, alpha=earth_smoothing_penalty),
+            param_grid={"alpha": [1, 1e-1, 1e-2, 1e-3], "gamma": np.logspace(-2, 2, 9)},
+        )
+
+        # model = Earth(penalty=earth_smoothing_penalty, smooth=True, max_degree=1, )
         comp_func = combine_funcs(model, xys, funcs, gates_locations, sigma=sigma, subsample_ratio=subsample_ratio, plot=False)
         comp_func_dict[ch, targ_num] = comp_func
         earth_models_dict[ch, targ_num] = model

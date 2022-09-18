@@ -59,7 +59,10 @@ class Pipeline:
                             gate_factor_q=.02, area_thresholds=.04,
                             kde_window=.28, width_thresholds=.16,
                             depth_thresholds=.23, jaccard_thresholds=.6, wass_dist_threshold = 1e-9,
-                 sigma=1, earth_smoothing_penalty=2, segment_data= False, files_names= None, first_column_in_channel_names_sample_code = False,
+                 sigma=1, earth_smoothing_penalty=2,
+
+                 segment_data= False, files_names= None,
+                 first_column_in_channel_names_sample_code = False,
                  ):
 
         self.files_names = files_names
@@ -268,7 +271,8 @@ class Pipeline:
                                              Morph_groups_All_ch=self.Morph_groups_All_ch
                                              )
 
-    def align_samples(self, channels, sigma =1,  earth_smoothing_penalty=2, n_sample =-1, subsample_ratio=1, in_place_eval=True, verbose= False):
+    def align_samples(self, channels, sigma =1,  earth_smoothing_penalty=2,
+                      n_sample =-1, subsample_ratio=1, in_place_eval=True, verbose= False):
 
         '''
 
